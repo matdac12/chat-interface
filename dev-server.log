@@ -202,3 +202,13 @@ Response length: 544 characters
  ⚠ Fast Refresh had to perform a full reload due to a runtime error.
  ✓ Compiled in 282ms (1739 modules)
  GET / 200 in 278ms
+ ✓ Compiled in 830ms (1739 modules)
+ GET / 200 in 75ms
+ ✓ Compiled in 369ms (1739 modules)
+ GET / 200 in 72ms
+ ✓ Compiled in 482ms (1739 modules)
+ GET / 200 in 52ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET / 200 in 165ms
+ ✓ Compiled in 257ms (1739 modules)
+ GET / 200 in 169ms
