@@ -1,0 +1,92 @@
+  async function sendMessage(convId, content) {
+    if (!content.trim()) return;
+
+    const now = new Date().toISOString();
+    const userMsg = {
+      id: Math.random().toString(36).slice(2),
+      role: "user",
+      content,
+      createdAt: now,
+    };
+
+    // Add user message immediately
+    setConversations((prev) =>
+      prev.map((c) => {
+        if (c.id !== convId) return c;
+        const msgs = [...(c.messages || []), userMsg];
+        return {
+          ...c,
+          messages: msgs,
+          updatedAt: now,
+          messageCount: msgs.length,
+          preview: content.slice(0, 80),
+        };
+      }),
+    );
+
+    // Start thinking state
+    setIsThinking(true);
+    setThinkingConvId(convId);
+
+    try {
+      // Get the current conversation to check for existing OpenAI conversation ID
+      const currentConv = conversations.find((c) => c.id === convId);
+      const openaiConvId = currentConv?.openaiConversationId;
+
+      // Call our API endpoint
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: content,
+          openaiConversationId: openaiConvId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+
+      // Parse the JSON response (non-streaming)
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error || 'API request failed');
+      }
+
+      console.log('Received response from OpenAI');
+      console.log('Conversation ID:', data.conversationId);
+      console.log('Message length:', data.message.length);
+
+      // Add assistant message
+      const assistantMsgId = Math.random().toString(36).slice(2);
+      setConversations((prev) =>
+        prev.map((c) => {
+          if (c.id !== convId) return c;
+
+          const assistantMsg = {
+            id: assistantMsgId,
+            role: "assistant",
+            content: data.message,
+            createdAt: new Date().toISOString(),
+          };
+
+          const updatedMessages = [...(c.messages || []), assistantMsg];
+
+          return {
+            ...c,
+            messages: updatedMessages,
+            openaiConversationId: data.conversationId,
+            updatedAt: new Date().toISOString(),
+            messageCount: updatedMessages.length,
+            preview: data.message.slice(0, 80),
+          };
+        }),
+      );
+    } catch (error) {
+      console.error("Failed to send message:", error);
+    } finally {
+      setIsThinking(false);
+      setThinkingConvId(null);
+    }
+  }

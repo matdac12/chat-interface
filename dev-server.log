@@ -1,0 +1,204 @@
+
+> my-v0-project@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.103:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 2.6s
+ ○ Compiling /api/chat ...
+ ✓ Compiled /api/chat in 996ms (468 modules)
+Creating new OpenAI conversation...
+Created conversation: conv_68fbdea78a748195b4b02fc026cc9baf0826f202f3b60b4d
+Adding user message to conversation...
+Creating response with prompt_id: pmpt_68fbdae0601c8195805839c837f819c60d8d215958834bd4
+API route error: Error: 400 Unknown parameter: 'conversation_id'.
+    at async POST (app/api/chat/route.ts:45:19)
+  43 |     // Step 3: Create streaming response with stored prompt
+  44 |     console.log('Creating response with prompt_id:', process.env.OPENAI_PROMPT_ID);
+> 45 |     const stream = await openai.responses.create({
+     |                   ^
+  46 |       model: 'gpt-5-nano',
+  47 |       prompt: {
+  48 |         id: process.env.OPENAI_PROMPT_ID!, {
+  status: 400,
+  headers: Headers {
+    date: 'Fri, 24 Oct 2025 20:16:41 GMT',
+    'content-type': 'application/json',
+    'content-length': '177',
+    connection: 'keep-alive',
+    'openai-version': '2020-10-01',
+    'openai-organization': 'be-digital-consulting',
+    'openai-project': 'proj_RJn9VR0pIbHoATXu9xIX2Zj6',
+    'x-request-id': 'req_fef47c0c1e124b909aab6e746accc08a',
+    'openai-processing-ms': '14',
+    'x-envoy-upstream-service-time': '20',
+    'cf-cache-status': 'DYNAMIC',
+    'set-cookie': '__cf_bm=p6n9ARlGIrHdewr6_0b4F9bR4B0CKTaip3e4SKkInR8-1761337001-1.0.1.1-8WyCNEWzpp5kjsmXMAoJCAlUb7QdHj4DwLZHsz6x.7TYrCmQ2uFf2u9k1Q5DLg87RWKosRCc5BGKqOolgN752KNcqzT.T3zQM6n2UDs5kdE; path=/; expires=Fri, 24-Oct-25 20:46:41 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=91nGafj50xZBGsjesqPDFsZDkiwTKfXYXJn4S_nglAY-1761337001220-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None',
+    'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',
+    'x-content-type-options': 'nosniff',
+    server: 'cloudflare',
+    'cf-ray': '993c273e5d93c724-MXP',
+    'alt-svc': 'h3=":443"; ma=86400'
+  },
+  requestID: 'req_fef47c0c1e124b909aab6e746accc08a',
+  error: [Object],
+  code: 'unknown_parameter',
+  param: 'conversation_id',
+  type: 'invalid_request_error'
+}
+ POST /api/chat 500 in 3348ms
+ ○ Compiling / ...
+ ✓ Compiled / in 3.3s (1884 modules)
+ GET / 200 in 3533ms
+ ✓ Compiled in 311ms (855 modules)
+ GET / 200 in 33ms
+ ✓ Compiled in 118ms (855 modules)
+ GET / 200 in 8ms
+ ✓ Compiled in 238ms (1739 modules)
+ GET / 200 in 82ms
+ ✓ Compiled /api/chat in 158ms (1011 modules)
+Creating new OpenAI conversation...
+ GET / 200 in 148ms
+Created conversation: conv_68fbdfab83708197a72199773a594e3e0931059a78907673
+Adding user message to conversation...
+Creating response with prompt_id: pmpt_68fbdae0601c8195805839c837f819c60d8d215958834bd4
+ POST /api/chat 200 in 17901ms
+ ✓ Compiled in 342ms (1739 modules)
+ GET / 200 in 93ms
+ ✓ Compiled /api/chat in 103ms (1011 modules)
+Creating new OpenAI conversation...
+ GET / 200 in 39ms
+Created conversation: conv_68fbe01f2e8c81969992d36d263bcb38091e982f7860f1af
+Adding user message to conversation...
+Creating response with prompt_id: pmpt_68fbdae0601c8195805839c837f819c60d8d215958834bd4
+ POST /api/chat 200 in 12455ms
+ ✓ Compiled in 344ms (1739 modules)
+ ✓ Compiled in 114ms (855 modules)
+ ✓ Compiled in 493ms (1739 modules)
+ ✓ Compiled /api/chat in 86ms (1011 modules)
+Creating new OpenAI conversation...
+Created conversation: conv_68fbe0a925c88195bed3231d40617a7e08b5040b884d909c
+Adding user message to conversation...
+Creating response with prompt_id: pmpt_68fbdae0601c8195805839c837f819c60d8d215958834bd4
+Response completed successfully
+Response ID: resp_08b5040b884d909c0068fbe0aaab70819582e63c531cb66148
+Assistant response length: 21 characters
+ POST /api/chat 200 in 10823ms
+Creating new OpenAI conversation...
+Created conversation: conv_68fbe0b963cc819598270c85bb6b362a0cda51419dbcd998
+Adding user message to conversation...
+Creating response with prompt_id: pmpt_68fbdae0601c8195805839c837f819c60d8d215958834bd4
+Response completed successfully
+Response ID: resp_0cda51419dbcd9980068fbe0bac37881958aa3173c29e6dd50
+Assistant response length: 21 characters
+ POST /api/chat 200 in 11704ms
+ ✓ Compiled in 274ms (1866 modules)
+ GET / 200 in 89ms
+ GET / 200 in 14ms
+ GET / 200 in 12ms
+ GET / 200 in 12ms
+ GET / 200 in 14ms
+Creating new OpenAI conversation...
+Created conversation: conv_68fbe0e8c4ec8190b00eab3da7a4f0c9017f524c85d83248
+Adding user message to conversation...
+Creating response with prompt_id: pmpt_68fbdae0601c8195805839c837f819c60d8d215958834bd4
+Response completed successfully
+Response ID: resp_017f524c85d832480068fbe0e97ad08190a7cd57da35a48d86
+Response structure: {
+  "id": "resp_017f524c85d832480068fbe0e97ad08190a7cd57da35a48d86",
+  "object": "response",
+  "created_at": 1761337578,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "conversation": {
+    "id": "conv_68fbe0e8c4ec8190b00eab3da7a4f0c9017f524c85d83248"
+  },
+  "error": null,
+  "incomplete_details": null,
+  "instructions": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "Fai un respiro pr
+Assistant message found: true
+Text content found: false
+Assistant response length: 21 characters
+ POST /api/chat 200 in 7507ms
+ ✓ Compiled in 306ms (1866 modules)
+ GET / 200 in 54ms
+Creating new OpenAI conversation...
+Created conversation: conv_68fbe12dbd508197863f7b89dd6c19930306c87f75565abc
+Creating response with prompt_id: pmpt_68fbdae0601c8195805839c837f819c60d8d215958834bd4
+Response completed successfully
+Response ID: resp_0306c87f75565abc0068fbe12dfff4819784fa24063180aa24
+Assistant response: Ciao Mattia, piacere di conoscerti! Qual è il tuo ruolo in Zafferano e su quale area lavori in Dynam...
+Response length: 796 characters
+ POST /api/chat 200 in 14484ms
+Creating new OpenAI conversation...
+Created conversation: conv_68fbe14357548197a5de749400392e360915e378da0a33e3
+Creating response with prompt_id: pmpt_68fbdae0601c8195805839c837f819c60d8d215958834bd4
+Response completed successfully
+Response ID: resp_0915e378da0a33e30068fbe1439798819794f976d7d5ebb730
+Assistant response: Ciao Mattia! Piacere di conoscerti. Grazie per avermi detto il tuo nome.
+
+Per poterti aiutare al meg...
+Response length: 563 characters
+ POST /api/chat 200 in 13110ms
+Using existing conversation: conv_68fbe14357548197a5de749400392e360915e378da0a33e3
+Creating response with prompt_id: pmpt_68fbdae0601c8195805839c837f819c60d8d215958834bd4
+Response completed successfully
+Response ID: resp_0915e378da0a33e30068fbe15f46dc81979db8731aa833f070
+Assistant response: Ciao Mattia, grazie per la precisazione. Andiamo a fondo sull’ordine: per poterti aiutare al meglio ...
+Response length: 3671 characters
+ POST /api/chat 200 in 36602ms
+Using existing conversation: conv_68fbe14357548197a5de749400392e360915e378da0a33e3
+Creating response with prompt_id: pmpt_68fbdae0601c8195805839c837f819c60d8d215958834bd4
+ POST /api/chat 200 in 60001ms
+ ✓ Compiled in 281ms (855 modules)
+Response completed successfully
+Response ID: resp_0915e378da0a33e30068fbe1d4a58c8197adecac1d8ba07999
+Assistant response: Ciao Mattia, grazie per l’aggiornamento. Per poterti aiutare in modo rapido ed efficace, servono i d...
+Response length: 3186 characters
+ GET / 200 in 37ms
+ GET / 200 in 151ms
+Creating new OpenAI conversation...
+Created conversation: conv_68fbe2202358819588fefe1d4d741c9c0afb56dba8178eba
+Creating response with prompt_id: pmpt_68fbdae0601c8195805839c837f819c60d8d215958834bd4
+Response completed successfully
+Response ID: resp_0afb56dba8178eba0068fbe2206d6481959b05e3e31d247acd
+Assistant response: Ciao! Sì, ci sono. Sono l’assistente IT di Zafferano Srl per Microsoft Dynamics 365 Business Central...
+Response length: 544 characters
+ POST /api/chat 200 in 9094ms
+ ✓ Compiled in 899ms (1739 modules)
+ GET / 200 in 86ms
+ ✓ Compiled in 271ms (1739 modules)
+ GET / 200 in 132ms
+ ✓ Compiled in 191ms (855 modules)
+ GET / 200 in 11ms
+ GET / 200 in 232ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 1041ms (1739 modules)
+ ⨯ ReferenceError: mounted is not defined
+    at Sidebar (components/Sidebar.jsx:208:9)
+  206 |
+  207 |       <AnimatePresence>
+> 208 |         {mounted && (
+      |         ^
+  209 |           <motion.aside
+  210 |             key="sidebar"
+  211 |             initial={{ x: -340 }} {
+  digest: '3563170735'
+}
+ GET / 500 in 246ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 282ms (1739 modules)
+ GET / 200 in 278ms
