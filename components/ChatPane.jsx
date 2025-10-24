@@ -15,12 +15,12 @@ function ThinkingMessage({ onPause }) {
           <div className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.15s]"></div>
           <div className="h-2 w-2 animate-bounce rounded-full bg-zinc-400"></div>
         </div>
-        <span className="text-sm text-zinc-500">AI is thinking...</span>
+        <span className="text-sm text-zinc-500">Sto pensando...</span>
         <button
           onClick={onPause}
           className="ml-auto inline-flex items-center gap-1 rounded-full border border-zinc-300 px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
         >
-          <Square className="h-3 w-3" /> Pause
+          <Square className="h-3 w-3" /> Pausa
         </button>
       </div>
     </Message>
@@ -89,12 +89,12 @@ const ChatPane = forwardRef(function ChatPane(
           </span>
         </div>
         <div className="mb-6 text-sm text-zinc-500 dark:text-zinc-400">
-          Updated {timeAgo(conversation.updatedAt)} · {count} messages
+          Aggiornata {timeAgo(conversation.updatedAt)} · {count} messaggi
         </div>
 
         {messages.length === 0 ? (
           <div className="rounded-xl border border-dashed border-zinc-300 p-6 text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-            No messages yet. Say hello to start.
+            Nessun messaggio. Inizia a scrivere per cominciare.
           </div>
         ) : (
           <>
@@ -118,19 +118,19 @@ const ChatPane = forwardRef(function ChatPane(
                         onClick={saveEdit}
                         className="inline-flex items-center gap-1 rounded-full bg-zinc-900 px-3 py-1.5 text-xs text-white dark:bg-white dark:text-zinc-900"
                       >
-                        <Check className="h-3.5 w-3.5" /> Save
+                        <Check className="h-3.5 w-3.5" /> Salva
                       </button>
                       <button
                         onClick={saveAndResend}
                         className="inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs"
                       >
-                        <RefreshCw className="h-3.5 w-3.5" /> Save & Resend
+                        <RefreshCw className="h-3.5 w-3.5" /> Salva e Reinvia
                       </button>
                       <button
                         onClick={cancelEdit}
                         className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs"
                       >
-                        <X className="h-3.5 w-3.5" /> Cancel
+                        <X className="h-3.5 w-3.5" /> Annulla
                       </button>
                     </div>
                   </div>
@@ -143,13 +143,13 @@ const ChatPane = forwardRef(function ChatPane(
                           className="inline-flex items-center gap-1 hover:underline"
                           onClick={() => startEdit(m)}
                         >
-                          <Pencil className="h-3.5 w-3.5" /> Edit
+                          <Pencil className="h-3.5 w-3.5" /> Modifica
                         </button>
                         <button
                           className="inline-flex items-center gap-1 hover:underline"
                           onClick={() => onResendMessage?.(m.id)}
                         >
-                          <RefreshCw className="h-3.5 w-3.5" /> Resend
+                          <RefreshCw className="h-3.5 w-3.5" /> Reinvia
                         </button>
                       </div>
                     )}

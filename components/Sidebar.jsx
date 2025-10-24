@@ -228,7 +228,7 @@ export default function Sidebar({
                   <Asterisk className="h-4 w-4" />
                 </div>
                 <div className="text-sm font-semibold tracking-tight">
-                  AI Assistant
+                  Zafferano IT
                 </div>
               </div>
               <div className="ml-auto flex items-center gap-1">
@@ -253,7 +253,7 @@ export default function Sidebar({
 
             <div className="px-3 pt-3">
               <label htmlFor="search" className="sr-only">
-                Search conversations
+                Cerca conversazioni
               </label>
               <div className="relative">
                 <SearchIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
@@ -263,7 +263,7 @@ export default function Sidebar({
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search…"
+                  placeholder="Cerca…"
                   onClick={() => setShowSearchModal(true)}
                   onFocus={() => setShowSearchModal(true)}
                   className="w-full rounded-full border border-zinc-200 bg-white py-2 pl-9 pr-3 text-sm outline-none ring-0 placeholder:text-zinc-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-zinc-800 dark:bg-zinc-950/50"
@@ -275,16 +275,16 @@ export default function Sidebar({
               <button
                 onClick={createNewChat}
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-white dark:text-zinc-900"
-                title="New Chat (⌘N)"
+                title="Nuova Chat (⌘N)"
               >
-                <Plus className="h-4 w-4" /> Start New Chat
+                <Plus className="h-4 w-4" /> Nuova Chat
               </button>
             </div>
 
             <nav className="mt-4 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-2 pb-4">
               <SidebarSection
                 icon={<Star className="h-4 w-4" />}
-                title="PINNED CHATS" // Renamed from "PINNED CONVERSATIONS" to "PINNED CHATS"
+                title="CHAT FISSATE"
                 collapsed={collapsed.pinned}
                 onToggle={() =>
                   setCollapsed((s) => ({ ...s, pinned: !s.pinned }))
@@ -292,7 +292,7 @@ export default function Sidebar({
               >
                 {pinned.length === 0 ? (
                   <div className="select-none rounded-lg border border-dashed border-zinc-200 px-3 py-3 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
-                    Pin important threads for quick access.
+                    Fissa le conversazioni importanti per un accesso rapido.
                   </div>
                 ) : (
                   pinned.map((c) => (
@@ -309,7 +309,7 @@ export default function Sidebar({
 
               <SidebarSection
                 icon={<Clock className="h-4 w-4" />}
-                title="RECENT"
+                title="RECENTI"
                 collapsed={collapsed.recent}
                 onToggle={() =>
                   setCollapsed((s) => ({ ...s, recent: !s.recent }))
@@ -317,7 +317,7 @@ export default function Sidebar({
               >
                 {recent.length === 0 ? (
                   <div className="select-none rounded-lg border border-dashed border-zinc-200 px-3 py-3 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
-                    No conversations yet. Start a new one!
+                    Nessuna conversazione. Iniziane una nuova!
                   </div>
                 ) : (
                   recent.map((c) => (
@@ -335,7 +335,7 @@ export default function Sidebar({
 
               <SidebarSection
                 icon={<FolderIcon className="h-4 w-4" />}
-                title="FOLDERS"
+                title="CARTELLE"
                 collapsed={collapsed.folders}
                 onToggle={() =>
                   setCollapsed((s) => ({ ...s, folders: !s.folders }))
@@ -346,7 +346,7 @@ export default function Sidebar({
                     onClick={() => setShowCreateFolderModal(true)}
                     className="mb-2 inline-flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
                   >
-                    <Plus className="h-4 w-4" /> Create folder
+                    <Plus className="h-4 w-4" /> Crea cartella
                   </button>
 
                   {folders.map((f) => (
@@ -366,8 +366,8 @@ export default function Sidebar({
               </SidebarSection>
 
               <SidebarSection
-                icon={<FileText className="h-4 w-4" />} // Replaced StarOff with FileText for better template metaphor
-                title="TEMPLATES"
+                icon={<FileText className="h-4 w-4" />}
+                title="MODELLI"
                 collapsed={collapsed.templates}
                 onToggle={() =>
                   setCollapsed((s) => ({ ...s, templates: !s.templates }))
@@ -378,7 +378,7 @@ export default function Sidebar({
                     onClick={() => setShowCreateTemplateModal(true)}
                     className="mb-2 inline-flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
                   >
-                    <Plus className="h-4 w-4" /> Create template
+                    <Plus className="h-4 w-4" /> Crea modello
                   </button>
 
                   {(Array.isArray(templates) ? templates : []).map(
@@ -396,7 +396,7 @@ export default function Sidebar({
 
                   {(!templates || templates.length === 0) && (
                     <div className="select-none rounded-lg border border-dashed border-zinc-200 px-3 py-3 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
-                      No templates yet. Create your first prompt template.
+                      Nessun modello. Crea il tuo primo modello di prompt.
                     </div>
                   )}
                 </div>
@@ -407,7 +407,7 @@ export default function Sidebar({
               <div className="flex items-center gap-2">
                 <SettingsPopover>
                   <button className="inline-flex items-center gap-2 rounded-lg px-2 py-2 text-sm hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:hover:bg-zinc-800">
-                    <Settings className="h-4 w-4" /> Settings
+                    <Settings className="h-4 w-4" /> Impostazioni
                   </button>
                 </SettingsPopover>
                 <div className="ml-auto">

@@ -112,7 +112,7 @@ Additional context and discussion points`,
 ];
 
 export const INITIAL_FOLDERS = [
-  { id: "f1", name: "Work Projects" },
-  { id: "f2", name: "Personal" },
-  { id: "f3", name: "Code Reviews" },
+  { id: "f1", name: "Progetti Lavoro" },
+  { id: "f2", name: "Personale" },
+  { id: "f3", name: "Revisioni Codice" },
 ];

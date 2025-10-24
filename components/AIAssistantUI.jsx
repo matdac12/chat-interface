@@ -218,12 +218,12 @@ export default function AIAssistantUI() {
     const id = Math.random().toString(36).slice(2);
     const item = {
       id,
-      title: "New Chat",
+      title: "Nuova Chat",
       updatedAt: new Date().toISOString(),
       messageCount: 0,
-      preview: "Say hello to start...",
+      preview: "Inizia a scrivere...",
       pinned: false,
-      folder: "Work Projects",
+      folder: "Progetti Lavoro",
       messages: [], // Ensure messages array is empty for new chats
     };
     setConversations((prev) => [item, ...prev]);
@@ -232,10 +232,10 @@ export default function AIAssistantUI() {
   }
 
   function createFolder() {
-    const name = prompt("Folder name");
+    const name = prompt("Nome cartella");
     if (!name) return;
     if (folders.some((f) => f.name.toLowerCase() === name.toLowerCase()))
-      return alert("Folder already exists.");
+      return alert("La cartella esiste già.");
     setFolders((prev) => [
       ...prev,
       { id: Math.random().toString(36).slice(2), name },
@@ -295,12 +295,12 @@ export default function AIAssistantUI() {
       const data = await response.json();
 
       if (!data.success) {
-        throw new Error(data.error || 'API request failed');
+        throw new Error(data.error || "API request failed");
       }
 
-      console.log('Received response from OpenAI');
-      console.log('Conversation ID:', data.conversationId);
-      console.log('Message length:', data.message.length);
+      console.log("Received response from OpenAI");
+      console.log("Conversation ID:", data.conversationId);
+      console.log("Message length:", data.message.length);
 
       // Add assistant message
       const assistantMsgId = Math.random().toString(36).slice(2);
@@ -382,7 +382,7 @@ export default function AIAssistantUI() {
           <span className="inline-flex h-4 w-4 items-center justify-center">
             ✱
           </span>{" "}
-          AI Assistant
+          Zafferano IT
         </div>
         <div className="ml-auto flex items-center gap-2">
           <GhostIconButton label="Schedule">
