@@ -270,7 +270,7 @@ export default function Sidebar({
             <nav className="mt-4 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-2 pb-4">
               <SidebarSection
                 icon={<Star className="h-4 w-4" />}
-                title="CHAT FISSATE"
+                title="PREFERITI"
                 collapsed={collapsed.pinned}
                 onToggle={() =>
                   setCollapsed((s) => ({ ...s, pinned: !s.pinned }))
