@@ -9,6 +9,7 @@ import {
 } from "react";
 import { Send, Loader2, Plus, Mic } from "lucide-react";
 import ComposerActionsPopover from "./ComposerActionsPopover";
+import VoiceWaveform from "./VoiceWaveform";
 import { cls } from "./utils";
 
 const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
@@ -221,7 +222,8 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
             </button>
           </ComposerActionsPopover>
 
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
+            {isRecording && <VoiceWaveform isActive={isRecording} />}
             <button
               onClick={toggleRecording}
               disabled={isTranscribing}
