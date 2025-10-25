@@ -137,22 +137,6 @@ const ChatPane = forwardRef(function ChatPane(
                 ) : (
                   <Message role={m.role}>
                     <div className="whitespace-pre-wrap">{m.content}</div>
-                    {m.role === "user" && (
-                      <div className="mt-1 flex gap-2 text-[11px] text-zinc-500">
-                        <button
-                          className="inline-flex items-center gap-1 hover:underline"
-                          onClick={() => startEdit(m)}
-                        >
-                          <Pencil className="h-3.5 w-3.5" /> Modifica
-                        </button>
-                        <button
-                          className="inline-flex items-center gap-1 hover:underline"
-                          onClick={() => onResendMessage?.(m.id)}
-                        >
-                          <RefreshCw className="h-3.5 w-3.5" /> Reinvia
-                        </button>
-                      </div>
-                    )}
                   </Message>
                 )}
               </div>
