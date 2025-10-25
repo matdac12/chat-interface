@@ -1,28 +1,54 @@
 "use client";
 
 import { useState, forwardRef, useImperativeHandle, useRef } from "react";
-import { Pencil, RefreshCw, Check, X, Square, Image, FileText } from "lucide-react";
+import { Pencil, RefreshCw, Check, X, Image, FileText } from "lucide-react";
 import Message from "./Message";
 import Composer from "./Composer";
+import StreamingMessage from "./StreamingMessage";
 import { cls, timeAgo } from "./utils";
 
-function ThinkingMessage({ onPause }) {
+function ThinkingMessage() {
   return (
     <Message role="assistant">
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-1">
-          <div className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.3s]"></div>
-          <div className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.15s]"></div>
-          <div className="h-2 w-2 animate-bounce rounded-full bg-zinc-400"></div>
+      <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+        <span>Sto pensando..</span>
+        <div className="flex items-center gap-1" aria-hidden="true">
+          <span className="thinking-dot" />
+          <span className="thinking-dot animation-delay-150" />
+          <span className="thinking-dot animation-delay-300" />
         </div>
-        <span className="text-sm text-zinc-500">Sto pensando...</span>
-        <button
-          onClick={onPause}
-          className="ml-auto inline-flex items-center gap-1 rounded-full border border-zinc-300 px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
-        >
-          <Square className="h-3 w-3" /> Pausa
-        </button>
       </div>
+      <style jsx>{`
+        .thinking-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 9999px;
+          background-color: rgb(148 163 184); /* zinc-400 */
+          display: inline-block;
+          animation: thinkingPulse 1.2s ease-in-out infinite;
+        }
+
+        .animation-delay-150 {
+          animation-delay: 0.15s;
+        }
+
+        .animation-delay-300 {
+          animation-delay: 0.3s;
+        }
+
+        @keyframes thinkingPulse {
+          0%,
+          80%,
+          100% {
+            transform: scale(0.6);
+            opacity: 0.4;
+          }
+          40% {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+      `}</style>
     </Message>
   );
 }
@@ -34,7 +60,9 @@ const ChatPane = forwardRef(function ChatPane(
     onEditMessage,
     onResendMessage,
     isThinking,
-    onPauseThinking,
+    isStreamingActive,
+    streamingContent,
+    streamingMessageId,
   },
   ref,
 ) {
@@ -179,7 +207,26 @@ const ChatPane = forwardRef(function ChatPane(
                 )}
               </div>
             ))}
-            {isThinking && <ThinkingMessage onPause={onPauseThinking} />}
+            {/* Show streaming message when active */}
+            {isStreamingActive && streamingContent && (
+              <div>
+                {console.log("🎨 Rendering StreamingMessage:", {
+                  isStreamingActive,
+                  streamingContentLength: streamingContent?.length || 0,
+                  streamingMessageId
+                })}
+                <StreamingMessage
+                  key={streamingMessageId}
+                  content={streamingContent || ""}
+                  isStreaming={isStreamingActive}
+                  isComplete={false}
+                  streamingSpeed={50}
+                  showTypingIndicator={true}
+                />
+              </div>
+            )}
+            {/* Show thinking indicator when not streaming */}
+            {isThinking && <ThinkingMessage />}
           </>
         )}
       </div>

@@ -94,6 +94,10 @@ export default function AIAssistantUI() {
   const searchRef = useRef(null);
   const [isThinking, setIsThinking] = useState(false);
   const [thinkingConvId, setThinkingConvId] = useState(null);
+  const [streamingMessageId, setStreamingMessageId] = useState(null);
+  const [streamingContent, setStreamingContent] = useState("");
+  const [isStreamingActive, setIsStreamingActive] = useState(false);
+  const [useStreaming, setUseStreaming] = useState(true);
   const composerRef = useRef(null);
 
   // Fetch conversations from API using React Query
@@ -280,11 +284,153 @@ export default function AIAssistantUI() {
     }
   }
 
-  async function sendMessage(convId, content) {
+  async function sendMessage(convId, content, fileData) {
     if (!content.trim()) return;
 
     const conversation = conversations.find((c) => c.id === convId);
     if (!conversation) return;
+
+    // Try streaming first, fallback to non-streaming on error
+    if (useStreaming) {
+      try {
+        await sendMessageStreaming(convId, content, fileData);
+      } catch (streamError) {
+        console.warn("⚠️ Streaming failed, falling back to non-streaming:", streamError);
+        setUseStreaming(false);
+        await sendMessageNonStreaming(convId, content, fileData);
+      }
+    } else {
+      await sendMessageNonStreaming(convId, content, fileData);
+    }
+
+    // Generate title automatically after first message (runs in background)
+    const isFirstMessage = !conversation.messages || conversation.messages.length === 0;
+    if (isFirstMessage) {
+      console.log("First message detected - generating title in background...");
+      fetch("/api/generate-title", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: content, conversationId: convId }),
+      })
+        .then((response) => response.json())
+        .then((titleData) => {
+          if (titleData.success && titleData.title) {
+            console.log("Generated title:", titleData.title);
+            queryClient.invalidateQueries(["conversations"]);
+          }
+        })
+        .catch((titleError) => {
+          console.error("Failed to generate title:", titleError);
+        });
+    }
+  }
+
+  async function sendMessageStreaming(convId, content, fileData) {
+    const conversation = conversations.find((c) => c.id === convId);
+    if (!conversation) return;
+
+    console.log("📡 Starting streaming request...");
+
+    // Optimistically add user message to UI
+    const optimisticUserMsg = {
+      id: `temp-user-${Date.now()}`,
+      role: "user",
+      content,
+      createdAt: new Date().toISOString(),
+    };
+
+    queryClient.setQueryData(["conversations"], (old = []) =>
+      old.map((c) => {
+        if (c.id !== convId) return c;
+        return {
+          ...c,
+          messages: [...(c.messages || []), optimisticUserMsg],
+          updatedAt: new Date().toISOString(),
+          preview: content.slice(0, 80),
+        };
+      })
+    );
+
+    // Set up streaming state
+    setStreamingContent("");
+    setIsStreamingActive(true);
+    setStreamingMessageId(`streaming-${Date.now()}`);
+    setThinkingConvId(convId);
+    setIsThinking(true);
+
+    try {
+      // Import streaming client dynamically
+      const { streamingClient } = await import("@/lib/streaming-client");
+
+      // Start streaming with callbacks passed as options
+      await streamingClient.sendMessage(
+        convId,
+        content,
+        conversation.openaiConversationId || conversation.openai_conversation_id,
+        fileData,
+        {
+          onContent: (newContent, isComplete) => {
+            console.log("📥 Content received:", { newContent, isComplete, length: newContent.length });
+            if (!isComplete) {
+              setStreamingContent((prev) => {
+                if (!prev && newContent) {
+                  setIsThinking(false); // first chunk arrived; hide thinking indicator
+                }
+                const updated = prev + newContent;
+                console.log("📝 Updated content length:", updated.length);
+                return updated;
+              });
+            }
+          },
+          onComplete: (finalContent) => {
+            console.log("✅ Streaming completed, final length:", finalContent.length);
+            console.log("✅ Refreshing conversations from database");
+            setIsStreamingActive(false);
+            setStreamingMessageId(null);
+            setStreamingContent("");
+            setThinkingConvId(null);
+            setIsThinking(false);
+            // Refresh conversations to get the final message from database
+            queryClient.invalidateQueries(["conversations"]);
+          },
+          onError: (error) => {
+            console.error("❌ Streaming error:", error);
+            setIsStreamingActive(false);
+            setStreamingMessageId(null);
+            setStreamingContent("");
+            setThinkingConvId(null);
+            setIsThinking(false);
+            // Don't throw here - just log and clean up
+          }
+        }
+      );
+
+    } catch (error) {
+      console.error("Streaming setup failed:", error);
+      // Clean up optimistic update
+      queryClient.setQueryData(["conversations"], (old = []) =>
+        old.map((c) => {
+          if (c.id !== convId) return c;
+          return {
+            ...c,
+            messages: c.messages.filter((m) => m.id !== optimisticUserMsg.id),
+          };
+        })
+      );
+      setIsStreamingActive(false);
+      setStreamingMessageId(null);
+      setStreamingContent("");
+      setThinkingConvId(null);
+      setIsThinking(false);
+      throw error; // Re-throw to trigger fallback
+    }
+  }
+
+  async function sendMessageNonStreaming(convId, content, fileData) {
+    const conversation = conversations.find((c) => c.id === convId);
+    if (!conversation) return;
+
+    console.log("📤 Using non-streaming request (fallback)...");
 
     // Optimistically add user message to UI
     const optimisticUserMsg = {
@@ -309,17 +455,16 @@ export default function AIAssistantUI() {
     setIsThinking(true);
     setThinkingConvId(convId);
 
-    const isFirstMessage = !conversation.messages || conversation.messages.length === 0;
-
     try {
-      // Call API to send message
+      // Call non-streaming API
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: content,
           conversationId: convId,
-          openaiConversationId: conversation.openaiConversationId,
+          openaiConversationId: conversation.openaiConversationId || conversation.openai_conversation_id,
+          file: fileData,
         }),
       });
 
@@ -351,27 +496,6 @@ export default function AIAssistantUI() {
       setIsThinking(false);
       setThinkingConvId(null);
     }
-
-    // Generate title automatically after first message (runs in background)
-    if (isFirstMessage) {
-      console.log("First message detected - generating title in background...");
-      fetch("/api/generate-title", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: content, conversationId: convId }),
-      })
-        .then((response) => response.json())
-        .then((titleData) => {
-          if (titleData.success && titleData.title) {
-            console.log("Generated title:", titleData.title);
-            // Refresh conversations to get updated title
-            queryClient.invalidateQueries(["conversations"]);
-          }
-        })
-        .catch((titleError) => {
-          console.error("Failed to generate title:", titleError);
-        });
-    }
   }
 
   function editMessage(convId, messageId, newContent) {
@@ -383,11 +507,6 @@ export default function AIAssistantUI() {
     const msg = conv?.messages?.find((m) => m.id === messageId);
     if (!msg) return;
     sendMessage(convId, msg.content);
-  }
-
-  function pauseThinking() {
-    setIsThinking(false);
-    setThinkingConvId(null);
   }
 
   const selected = conversations.find((c) => c.id === selectedId) || null;
@@ -453,7 +572,7 @@ export default function AIAssistantUI() {
           <ChatPane
             ref={composerRef}
             conversation={selected}
-            onSend={(content) => selected && sendMessage(selected.id, content)}
+            onSend={(content, fileData) => selected && sendMessage(selected.id, content, fileData)}
             onEditMessage={(messageId, newContent) =>
               selected && editMessage(selected.id, messageId, newContent)
             }
@@ -461,7 +580,9 @@ export default function AIAssistantUI() {
               selected && resendMessage(selected.id, messageId)
             }
             isThinking={isThinking && thinkingConvId === selected?.id}
-            onPauseThinking={pauseThinking}
+            isStreamingActive={isStreamingActive && thinkingConvId === selected?.id}
+            streamingContent={streamingContent}
+            streamingMessageId={streamingMessageId}
           />
         </main>
       </div>

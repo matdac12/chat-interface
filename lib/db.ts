@@ -118,13 +118,41 @@ export async function getMessagesByConversationId(conversationId: string) {
 export async function createMessage(
   conversationId: string,
   role: "user" | "assistant",
-  content: string
+  content: string,
+  file?: {
+    name: string;
+    type: string;
+    size: number;
+    data: string;
+  }
 ) {
-  const result = await sql`
-    INSERT INTO messages (conversation_id, role, content)
-    VALUES (${conversationId}, ${role}, ${content})
-    RETURNING *
-  `;
+  let result;
+
+  if (file) {
+    // Create message with file attachment
+    const attachment = JSON.stringify({ name: file.name, type: file.type });
+    const isImage = file.type.startsWith("image/");
+
+    result = await sql`
+      INSERT INTO messages (conversation_id, role, content, attachment, attachment_mime_type, attachment_preview)
+      VALUES (
+        ${conversationId},
+        ${role},
+        ${content},
+        ${attachment},
+        ${file.type},
+        ${isImage ? file.data : null}
+      )
+      RETURNING *
+    `;
+  } else {
+    // Create message without attachment
+    result = await sql`
+      INSERT INTO messages (conversation_id, role, content)
+      VALUES (${conversationId}, ${role}, ${content})
+      RETURNING *
+    `;
+  }
 
   // Update conversation's updated_at timestamp
   await sql`

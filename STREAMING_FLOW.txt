@@ -1,0 +1,234 @@
+╔══════════════════════════════════════════════════════════════════════════╗
+║                                                                          ║
+║                    STREAMING FLOW ARCHITECTURE                           ║
+║                                                                          ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        USER SENDS MESSAGE                               │
+└─────────────────────────────────────────────────────────────────────────┘
+                                   │
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│  AIAssistantUI.jsx: sendMessage()                                       │
+│  • Checks if streaming is enabled                                       │
+│  • Calls sendMessageStreaming() or sendMessageNonStreaming()            │
+└─────────────────────────────────────────────────────────────────────────┘
+                                   │
+                    ┌──────────────┴──────────────┐
+                    │                             │
+                    ▼                             ▼
+    ╔═══════════════════════════╗   ╔═══════════════════════════╗
+    ║   STREAMING PATH          ║   ║   FALLBACK PATH          ║
+    ║   (Primary)               ║   ║   (On Error)             ║
+    ╚═══════════════════════════╝   ╚═══════════════════════════╝
+                    │                             │
+                    ▼                             ▼
+┌─────────────────────────────────┐   ┌─────────────────────────┐
+│ 1. Add user message to UI       │   │ 1. Add user message     │
+│    (optimistic update)           │   │    (optimistic update)  │
+└─────────────────────────────────┘   └─────────────────────────┘
+                    │                             │
+                    ▼                             ▼
+┌─────────────────────────────────┐   ┌─────────────────────────┐
+│ 2. Import streaming-client.ts   │   │ 2. Call /api/chat       │
+└─────────────────────────────────┘   │    (non-streaming)      │
+                    │                  └─────────────────────────┘
+                    ▼                             │
+┌─────────────────────────────────┐              ▼
+│ 3. POST /api/chat/stream        │   ┌─────────────────────────┐
+└─────────────────────────────────┘   │ 3. Wait for full        │
+                    │                  │    response             │
+                    ▼                  └─────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│  Backend: /app/api/chat/stream/route.ts                                 │
+│                                                                          │
+│  1. Check authentication (NextAuth)                                     │
+│  2. Save user message to database IMMEDIATELY                           │
+│  3. Get/create OpenAI conversation ID                                   │
+│  4. Call StreamingResponseBuilder.buildChatStream()                     │
+└─────────────────────────────────────────────────────────────────────────┘
+                                   │
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│  StreamingManager.streamResponse()                                      │
+│                                                                          │
+│  • Calls OpenAI responses.create({ stream: true })                      │
+│  • Processes events with OpenAIStreamingEventParser                     │
+│  • Yields SSE formatted chunks: data: {...}\n\n                         │
+└─────────────────────────────────────────────────────────────────────────┘
+                                   │
+                                   ▼
+            ┌──────────────────────┴──────────────────────┐
+            │                                             │
+            ▼                                             ▼
+┌───────────────────────┐                    ┌───────────────────────┐
+│  EVENT: start         │                    │  EVENT: content       │
+│  {                    │                    │  {                    │
+│    type: "start",     │                    │    type: "content",   │
+│    message: "...",    │                    │    data: "Hello",     │
+│    timestamp: ...     │                    │    chunk_id: 1,       │
+│  }                    │                    │    total_chars: 5     │
+└───────────────────────┘                    │  }                    │
+                                             └───────────────────────┘
+                                                        │
+                                                        ▼
+                                             ┌───────────────────────┐
+                                             │  EVENT: content       │
+                                             │  {                    │
+                                             │    type: "content",   │
+                                             │    data: " world",    │
+                                             │    chunk_id: 2,       │
+                                             │    total_chars: 11    │
+                                             │  }                    │
+                                             └───────────────────────┘
+                                                        │
+                                                        ▼
+                                             ┌───────────────────────┐
+                                             │  EVENT: complete      │
+                                             │  {                    │
+                                             │    type: "complete",  │
+                                             │    final_content,     │
+                                             │    streaming_stats,   │
+                                             │    stored_in_db: true │
+                                             │  }                    │
+                                             └───────────────────────┘
+                                                        │
+            ┌───────────────────────────────────────────┘
+            │
+            ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│  Frontend: StreamingClient (lib/streaming-client.ts)                    │
+│                                                                          │
+│  • Connects to SSE stream via fetch()                                   │
+│  • Reads chunks using ReadableStream                                    │
+│  • Parses SSE format: "data: {...}\n\n"                                 │
+│  • Fires callbacks: onContent(), onComplete(), onError()                │
+└─────────────────────────────────────────────────────────────────────────┘
+                                   │
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│  AIAssistantUI.jsx: Event Handlers                                      │
+│                                                                          │
+│  onContent((newContent, isComplete) => {                                │
+│    setStreamingContent(prev => prev + newContent)  // Accumulate        │
+│  })                                                                      │
+│                                                                          │
+│  onComplete((finalContent) => {                                         │
+│    queryClient.invalidateQueries(["conversations"])  // Refresh DB      │
+│  })                                                                      │
+└─────────────────────────────────────────────────────────────────────────┘
+                                   │
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│  ChatPane.jsx: Render Streaming Message                                 │
+│                                                                          │
+│  {isStreamingActive && streamingContent && (                            │
+│    <StreamingMessage                                                     │
+│      content={streamingContent}                                         │
+│      isStreaming={true}                                                 │
+│      streamingSpeed={50}  // chars/sec                                  │
+│    />                                                                    │
+│  )}                                                                      │
+└─────────────────────────────────────────────────────────────────────────┘
+                                   │
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│  StreamingMessage.jsx: Progressive Animation                            │
+│                                                                          │
+│  • Receives accumulated content                                         │
+│  • Animates character-by-character (50 chars/sec)                       │
+│  • Shows blinking cursor: |                                             │
+│  • Displays "In streaming..." badge                                     │
+│  • Smooth transitions when complete                                     │
+└─────────────────────────────────────────────────────────────────────────┘
+                                   │
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│  USER SEES:                                                              │
+│                                                                          │
+│  ┌─────────────────────────────────────────────────────┐               │
+│  │ Assistente  [●] In streaming...                     │               │
+│  │                                                      │               │
+│  │ Hello world, how can I help you today|              │               │
+│  │                                                      │               │
+│  └─────────────────────────────────────────────────────┘               │
+└─────────────────────────────────────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ERROR HANDLING & FALLBACK FLOW
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  IF STREAMING FAILS:                                                     │
+└─────────────────────────────────────────────────────────────────────────┘
+                                   │
+                    ┌──────────────┴──────────────┐
+                    │                             │
+                    ▼                             ▼
+        ╔═══════════════════════╗     ╔═══════════════════════╗
+        ║  Level 1 Fallback     ║     ║  Level 2 Fallback     ║
+        ║  (StreamingFallback   ║     ║  (sendMessageNon      ║
+        ║   Handler)            ║     ║   Streaming)          ║
+        ╚═══════════════════════╝     ╚═══════════════════════╝
+                    │                             │
+                    ▼                             ▼
+        ┌───────────────────────┐     ┌───────────────────────┐
+        │ Try non-streaming     │     │ Use /api/chat         │
+        │ OpenAI API call       │     │ endpoint directly     │
+        └───────────────────────┘     └───────────────────────┘
+                    │                             │
+                    ▼                             ▼
+        ┌───────────────────────┐     ┌───────────────────────┐
+        │ Store message in DB   │     │ Full response at once │
+        └───────────────────────┘     └───────────────────────┘
+                    │                             │
+                    └──────────────┬──────────────┘
+                                   ▼
+                    ┌──────────────────────────────┐
+                    │ User sees complete response  │
+                    │ (no animation, but working)  │
+                    └──────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TIMING BREAKDOWN (Typical Flow)
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  t=0ms      User clicks Send                                            │
+│  t=50ms     User message appears in UI (optimistic)                     │
+│  t=100ms    POST /api/chat/stream sent                                  │
+│  t=150ms    User message saved to database                              │
+│  t=200ms    OpenAI streaming starts                                     │
+│  t=250ms    First chunk received                                        │
+│  t=250ms    "In streaming..." badge appears                             │
+│  t=270ms    "H" appears                                                 │
+│  t=290ms    "He" appears                                                │
+│  t=310ms    "Hel" appears                                               │
+│  ...        Progressive character animation (50 chars/sec)              │
+│  t=5000ms   Complete response received                                  │
+│  t=5050ms   Assistant message saved to database                         │
+│  t=5100ms   Conversations refreshed from database                       │
+│  t=5150ms   "In streaming..." badge disappears                          │
+│  t=5150ms   Cursor stops blinking                                       │
+└─────────────────────────────────────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+KEY DIFFERENCES: BEFORE vs AFTER
+
+BEFORE (Non-Streaming):
+  User sends message
+  → Wait...
+  → Wait...
+  → Wait...
+  → Full response appears suddenly
+
+AFTER (Streaming):
+  User sends message
+  → Immediate feedback ("In streaming...")
+  → Text appears progressively: "H" → "He" → "Hel" → "Hello..."
+  → Natural, ChatGPT-like experience
+  → Message saved to database when complete
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
