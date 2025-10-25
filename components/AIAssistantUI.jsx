@@ -68,14 +68,17 @@ export default function AIAssistantUI() {
     } catch {}
   }, [collapsed]);
 
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Load sidebar collapsed state from localStorage after mount to avoid hydration mismatch
+  useEffect(() => {
     try {
       const saved = localStorage.getItem("sidebar-collapsed-state");
-      return saved ? JSON.parse(saved) : false;
-    } catch {
-      return false;
-    }
-  });
+      if (saved) {
+        setSidebarCollapsed(JSON.parse(saved));
+      }
+    } catch {}
+  }, []);
 
   useEffect(() => {
     try {
@@ -86,43 +89,32 @@ export default function AIAssistantUI() {
     } catch {}
   }, [sidebarCollapsed]);
 
-  const [conversations, setConversations] = useState(() => {
-    try {
-      if (typeof window !== "undefined") {
-        const saved = localStorage.getItem("conversations");
-        if (saved) return JSON.parse(saved);
-      }
-    } catch (error) {
-      console.error("Failed to load conversations from localStorage:", error);
-    }
-    return INITIAL_CONVERSATIONS;
-  });
-
+  const [conversations, setConversations] = useState(INITIAL_CONVERSATIONS);
   const [selectedId, setSelectedId] = useState(null);
+  const [templates, setTemplates] = useState(INITIAL_TEMPLATES);
+  const [folders, setFolders] = useState(INITIAL_FOLDERS);
 
-  const [templates, setTemplates] = useState(() => {
+  // Load data from localStorage after mount to avoid hydration mismatch
+  useEffect(() => {
     try {
-      if (typeof window !== "undefined") {
-        const saved = localStorage.getItem("templates");
-        if (saved) return JSON.parse(saved);
+      const savedConversations = localStorage.getItem("conversations");
+      if (savedConversations) {
+        setConversations(JSON.parse(savedConversations));
+      }
+
+      const savedTemplates = localStorage.getItem("templates");
+      if (savedTemplates) {
+        setTemplates(JSON.parse(savedTemplates));
+      }
+
+      const savedFolders = localStorage.getItem("folders");
+      if (savedFolders) {
+        setFolders(JSON.parse(savedFolders));
       }
     } catch (error) {
-      console.error("Failed to load templates from localStorage:", error);
+      console.error("Failed to load data from localStorage:", error);
     }
-    return INITIAL_TEMPLATES;
-  });
-
-  const [folders, setFolders] = useState(() => {
-    try {
-      if (typeof window !== "undefined") {
-        const saved = localStorage.getItem("folders");
-        if (saved) return JSON.parse(saved);
-      }
-    } catch (error) {
-      console.error("Failed to load folders from localStorage:", error);
-    }
-    return INITIAL_FOLDERS;
-  });
+  }, []);
 
   const [query, setQuery] = useState("");
   const searchRef = useRef(null);
