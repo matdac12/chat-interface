@@ -269,6 +269,9 @@ export default function AIAssistantUI() {
         name: fileData.name,
         type: fileData.type.startsWith('image/') ? 'image' : 'pdf'
       } : null,
+      // Store preview data for images (session-only, not persisted to localStorage)
+      attachmentPreview: fileData?.type.startsWith('image/') ? fileData.data : null,
+      attachmentMimeType: fileData?.type || null,
     };
 
     // Check if this is the first message

@@ -1,14 +1,18 @@
 "use client"
+import { useState } from "react"
 import { Paperclip } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
 
 export default function ComposerActionsPopover({ children, onFileClick }) {
+  const [open, setOpen] = useState(false)
+
   const handleFileUpload = () => {
     onFileClick?.()
+    setOpen(false) // Close popover immediately after clicking
   }
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent className="w-56 p-0" align="start" side="top">
         <div className="p-2">

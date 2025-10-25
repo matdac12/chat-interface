@@ -319,27 +319,52 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
       >
         {/* File preview */}
         {attachedFile && (
-          <div className="mb-2 p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center gap-2">
+          <div className="mb-2 p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800">
             {attachedFile.type.startsWith("image/") ? (
-              <Image className="h-4 w-4 text-zinc-500 shrink-0" />
+              // Image preview with thumbnail
+              <div className="flex items-start gap-2">
+                <img
+                  src={`data:${attachedFile.type};base64,${attachedFile.data}`}
+                  alt="Preview"
+                  className="h-20 w-20 rounded object-cover border border-zinc-300 dark:border-zinc-600 shrink-0"
+                />
+                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                  <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300 truncate">
+                    {attachedFile.name}
+                  </div>
+                  <div className="text-xs text-zinc-500">
+                    {formatFileSize(attachedFile.size)}
+                  </div>
+                </div>
+                <button
+                  onClick={handleFileRemove}
+                  className="shrink-0 p-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                  title="Rimuovi file"
+                >
+                  <X className="h-4 w-4 text-zinc-500" />
+                </button>
+              </div>
             ) : (
-              <FileText className="h-4 w-4 text-zinc-500 shrink-0" />
+              // PDF preview with icon
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-zinc-500 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300 truncate">
+                    {attachedFile.name}
+                  </div>
+                  <div className="text-xs text-zinc-500">
+                    {formatFileSize(attachedFile.size)}
+                  </div>
+                </div>
+                <button
+                  onClick={handleFileRemove}
+                  className="shrink-0 p-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                  title="Rimuovi file"
+                >
+                  <X className="h-4 w-4 text-zinc-500" />
+                </button>
+              </div>
             )}
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300 truncate">
-                {attachedFile.name}
-              </div>
-              <div className="text-xs text-zinc-500">
-                {formatFileSize(attachedFile.size)}
-              </div>
-            </div>
-            <button
-              onClick={handleFileRemove}
-              className="shrink-0 p-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-              title="Rimuovi file"
-            >
-              <X className="h-4 w-4 text-zinc-500" />
-            </button>
           </div>
         )}
 

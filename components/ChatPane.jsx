@@ -137,15 +137,41 @@ const ChatPane = forwardRef(function ChatPane(
                 ) : (
                   <Message role={m.role}>
                     {m.attachment && (
-                      <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-zinc-200/50 dark:border-zinc-700/50">
+                      <div className="mb-2 pb-2 border-b border-zinc-200/50 dark:border-zinc-700/50">
                         {m.attachment.type === 'image' ? (
-                          <Image className="h-3.5 w-3.5 text-zinc-400" />
+                          m.attachmentPreview ? (
+                            // Show thumbnail if preview data exists
+                            <div className="flex items-start gap-2">
+                              <img
+                                src={`data:${m.attachmentMimeType};base64,${m.attachmentPreview}`}
+                                alt={m.attachment.name}
+                                className="h-16 w-16 rounded object-cover border border-zinc-200 dark:border-zinc-700 shrink-0"
+                              />
+                              <div className="flex-1 min-w-0 flex flex-col justify-center">
+                                <div className="text-xs font-medium text-zinc-700 dark:text-zinc-300 truncate flex items-center gap-1">
+                                  <Image className="h-3 w-3 text-zinc-400" />
+                                  {m.attachment.name}
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            // Fallback if no preview (e.g., after refresh)
+                            <div className="flex items-center gap-1.5">
+                              <Image className="h-3.5 w-3.5 text-zinc-400" />
+                              <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                                {m.attachment.name}
+                              </span>
+                            </div>
+                          )
                         ) : (
-                          <FileText className="h-3.5 w-3.5 text-zinc-400" />
+                          // PDF - keep icon display
+                          <div className="flex items-center gap-1.5">
+                            <FileText className="h-3.5 w-3.5 text-zinc-400" />
+                            <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                              {m.attachment.name}
+                            </span>
+                          </div>
                         )}
-                        <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                          {m.attachment.name}
-                        </span>
                       </div>
                     )}
                     <div className="whitespace-pre-wrap">{m.content}</div>
