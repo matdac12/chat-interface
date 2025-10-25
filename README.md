@@ -246,3 +246,5 @@ For questions or issues:
 ---
 
 **Built with ❤️ using Next.js and React**
+
+*Last updated: October 2025*
