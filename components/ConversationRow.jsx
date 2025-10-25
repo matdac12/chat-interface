@@ -49,7 +49,7 @@ export default function ConversationRow({
               onTogglePin();
             }}
             title={data.pinned ? "Unpin" : "Pin"}
-            className="rounded-md p-1 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:bg-zinc-200/50 dark:text-zinc-300 dark:hover:bg-zinc-700/60"
+            className="rounded-md p-1 text-zinc-500 opacity-100 transition hover:bg-zinc-200/50 dark:text-zinc-300 dark:hover:bg-zinc-700/60 lg:opacity-0 lg:group-hover:opacity-100"
             aria-label={data.pinned ? "Unpin conversation" : "Pin conversation"}
           >
             {data.pinned ? (
@@ -70,7 +70,7 @@ export default function ConversationRow({
               }
             }}
             title="Elimina conversazione"
-            className="rounded-md p-1 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:bg-red-50 hover:text-red-600 dark:text-zinc-300 dark:hover:bg-red-950/20 dark:hover:text-red-400"
+            className="rounded-md p-1 text-zinc-500 opacity-100 transition hover:bg-red-50 hover:text-red-600 dark:text-zinc-300 dark:hover:bg-red-950/20 dark:hover:text-red-400 lg:opacity-0 lg:group-hover:opacity-100"
             aria-label="Elimina conversazione"
           >
             <Trash2 className="h-4 w-4" />
