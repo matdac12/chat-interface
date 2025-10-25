@@ -1,3 +1,0 @@
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100    78    0     0  100    78      0     64  0:00:01  0:00:01 --:--:--    64100    78    0     0  100    78      0     35  0:00:02  0:00:02 --:--:--    35100    78    0     0  100    78      0     24  0:00:03  0:00:03 --:--:--    24{"error":"Failed to process request","details":"400 Unknown parameter: 'conversation_id'."}100   169    0    91  100    78     27     23  0:00:03  0:00:03 --:--:--    50

@@ -267,6 +267,10 @@ export default function AIAssistantUI() {
       createdAt: now,
     };
 
+    // Check if this is the first message
+    const currentConv = conversations.find((c) => c.id === convId);
+    const isFirstMessage = !currentConv?.messages || currentConv.messages.length === 0;
+
     // Add user message immediately
     setConversations((prev) =>
       prev.map((c) => {
@@ -288,7 +292,6 @@ export default function AIAssistantUI() {
 
     try {
       // Get the current conversation to check for existing OpenAI conversation ID
-      const currentConv = conversations.find((c) => c.id === convId);
       const openaiConvId = currentConv?.openaiConversationId;
 
       // Call our API endpoint
@@ -346,6 +349,32 @@ export default function AIAssistantUI() {
     } finally {
       setIsThinking(false);
       setThinkingConvId(null);
+    }
+
+    // Generate title automatically after first message (runs in background, independently)
+    if (isFirstMessage) {
+      console.log("First message detected - generating title in background...");
+      fetch("/api/generate-title", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: content }),
+      })
+        .then((response) => response.json())
+        .then((titleData) => {
+          if (titleData.success && titleData.title) {
+            console.log("Generated title:", titleData.title);
+            // Update conversation title
+            setConversations((prev) =>
+              prev.map((c) =>
+                c.id === convId ? { ...c, title: titleData.title } : c
+              ),
+            );
+          }
+        })
+        .catch((titleError) => {
+          console.error("Failed to generate title:", titleError);
+          // Don't throw - title generation failure shouldn't break the chat
+        });
     }
   }
   function editMessage(convId, messageId, newContent) {
