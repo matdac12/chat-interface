@@ -16,7 +16,11 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
   const [sending, setSending] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [lineCount, setLineCount] = useState(1);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const inputRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
   useEffect(() => {
     if (inputRef.current) {
@@ -81,6 +85,96 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
     }
   }
 
+  async function startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/webm",
+        });
+
+        // Stop all tracks to release microphone
+        stream.getTracks().forEach((track) => track.stop());
+
+        // Transcribe the audio
+        await transcribeAudio(audioBlob);
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error("Error starting recording:", error);
+      alert(
+        "Impossibile accedere al microfono. Verifica i permessi del browser.",
+      );
+    }
+  }
+
+  function stopRecording() {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  }
+
+  async function transcribeAudio(audioBlob) {
+    setIsTranscribing(true);
+    try {
+      const formData = new FormData();
+      formData.append("audio", audioBlob, "recording.webm");
+
+      const response = await fetch("/api/transcribe", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Transcription failed");
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.text) {
+        // Insert transcribed text into the textarea
+        setValue((prev) => {
+          const newValue = prev ? `${prev} ${data.text}` : data.text;
+          // Focus and move cursor to end
+          setTimeout(() => {
+            inputRef.current?.focus();
+            const length = newValue.length;
+            inputRef.current?.setSelectionRange(length, length);
+          }, 0);
+          return newValue;
+        });
+      } else {
+        throw new Error(data.error || "Transcription failed");
+      }
+    } catch (error) {
+      console.error("Transcription error:", error);
+      alert("Errore durante la trascrizione dell'audio. Riprova.");
+    } finally {
+      setIsTranscribing(false);
+    }
+  }
+
+  function toggleRecording() {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  }
+
   const hasContent = value.length > 0;
 
   return (
@@ -129,10 +223,29 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
 
           <div className="flex items-center gap-1 shrink-0">
             <button
-              className="inline-flex items-center justify-center rounded-full p-2 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
-              title="Voice input"
+              onClick={toggleRecording}
+              disabled={isTranscribing}
+              className={cls(
+                "inline-flex items-center justify-center rounded-full p-2 transition-colors",
+                isRecording
+                  ? "bg-red-500 text-white hover:bg-red-600 animate-pulse"
+                  : isTranscribing
+                    ? "text-zinc-400 cursor-not-allowed"
+                    : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-300",
+              )}
+              title={
+                isRecording
+                  ? "Clicca per fermare la registrazione"
+                  : isTranscribing
+                    ? "Trascrizione in corso..."
+                    : "Registra messaggio vocale"
+              }
             >
-              <Mic className="h-4 w-4" />
+              {isTranscribing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Mic className="h-4 w-4" />
+              )}
             </button>
             <button
               onClick={handleSend}

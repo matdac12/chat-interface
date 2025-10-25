@@ -250,3 +250,12 @@ Response length: 544 characters
  GET / 200 in 38ms
  ✓ Compiled in 143ms (855 modules)
  GET / 200 in 10ms
+ ✓ Compiled in 301ms (855 modules)
+ ✓ Compiled in 101ms (855 modules)
+ ✓ Compiled in 233ms (1739 modules)
+ ✓ Compiled in 626ms (1739 modules)
+ ✓ Compiled in 128ms (855 modules)
+ ✓ Compiled in 208ms (1739 modules)
+ ✓ Compiled in 122ms (855 modules)
+ ✓ Compiled in 238ms (1739 modules)
+ ✓ Compiled in 237ms (855 modules)
