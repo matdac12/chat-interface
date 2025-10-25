@@ -21,8 +21,10 @@ import CreateFolderModal from "./CreateFolderModal";
 import CreateTemplateModal from "./CreateTemplateModal";
 import SearchModal from "./SearchModal";
 import SettingsPopover from "./SettingsPopover";
+import ProfileCard from "./ProfileCard";
 import { cls } from "./utils";
 import { useState, useEffect } from "react";
+import { getSession } from "@/lib/auth";
 
 export default function Sidebar({
   open,
@@ -39,6 +41,7 @@ export default function Sidebar({
   selectedId,
   onSelect,
   togglePin,
+  onDeleteConversation,
   query,
   setQuery,
   searchRef,
@@ -55,7 +58,17 @@ export default function Sidebar({
   const [showCreateTemplateModal, setShowCreateTemplateModal] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [showSearchModal, setShowSearchModal] = useState(false);
+  const [showProfileCard, setShowProfileCard] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  // Get user session for profile display
+  const session = getSession();
+  const userFullName = session && session.name && session.lastname
+    ? `${session.name} ${session.lastname}`
+    : "User";
+  const userInitials = session && session.name && session.lastname
+    ? `${session.name.charAt(0)}${session.lastname.charAt(0)}`
+    : "U";
 
   useEffect(() => {
     setMounted(true);
@@ -275,6 +288,7 @@ export default function Sidebar({
                       active={c.id === selectedId}
                       onSelect={() => onSelect(c.id)}
                       onTogglePin={() => togglePin(c.id)}
+                      onDelete={() => onDeleteConversation(c.id)}
                     />
                   ))
                 )}
@@ -300,13 +314,15 @@ export default function Sidebar({
                       active={c.id === selectedId}
                       onSelect={() => onSelect(c.id)}
                       onTogglePin={() => togglePin(c.id)}
+                      onDelete={() => onDeleteConversation(c.id)}
                       showMeta
                     />
                   ))
                 )}
               </SidebarSection>
 
-              <SidebarSection
+              {/* TEMPORARILY HIDDEN - Folders section (uncomment to re-enable) */}
+              {/* <SidebarSection
                 icon={<FolderIcon className="h-4 w-4" />}
                 title="CARTELLE"
                 collapsed={collapsed.folders}
@@ -336,9 +352,10 @@ export default function Sidebar({
                     />
                   ))}
                 </div>
-              </SidebarSection>
+              </SidebarSection> */}
 
-              <SidebarSection
+              {/* TEMPORARILY HIDDEN - Templates section (uncomment to re-enable) */}
+              {/* <SidebarSection
                 icon={<FileText className="h-4 w-4" />}
                 title="MODELLI"
                 collapsed={collapsed.templates}
@@ -373,7 +390,7 @@ export default function Sidebar({
                     </div>
                   )}
                 </div>
-              </SidebarSection>
+              </SidebarSection> */}
             </nav>
 
             <div className="mt-auto border-t border-zinc-200/60 px-3 py-3 dark:border-zinc-800">
@@ -387,17 +404,22 @@ export default function Sidebar({
                   <ThemeToggle theme={theme} setTheme={setTheme} />
                 </div>
               </div>
-              <div className="mt-2 flex items-center gap-2 rounded-xl bg-zinc-50 p-2 dark:bg-zinc-800/60">
-                <div className="grid h-8 w-8 place-items-center rounded-full bg-zinc-900 text-xs font-bold text-white dark:bg-white dark:text-zinc-900">
-                  JD
+              <button
+                onClick={() => setShowProfileCard(true)}
+                className="mt-2 flex w-full items-center gap-2 rounded-xl bg-zinc-50 p-2 transition-colors hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-zinc-800/60 dark:hover:bg-zinc-800"
+              >
+                <div className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 text-xs font-bold text-white shadow-sm">
+                  {userInitials}
                 </div>
-                <div className="min-w-0">
-                  <div className="truncate text-sm font-medium">John Doe</div>
+                <div className="min-w-0 text-left">
+                  <div className="truncate text-sm font-medium">
+                    {userFullName}
+                  </div>
                   <div className="truncate text-xs text-zinc-500 dark:text-zinc-400">
-                    Pro workspace
+                    {session?.email}
                   </div>
                 </div>
-              </div>
+              </button>
             </div>
       </motion.aside>
 
@@ -425,6 +447,11 @@ export default function Sidebar({
         onSelect={onSelect}
         togglePin={togglePin}
         createNewChat={createNewChat}
+      />
+
+      <ProfileCard
+        isOpen={showProfileCard}
+        onClose={() => setShowProfileCard(false)}
       />
     </>
   );

@@ -1,5 +1,5 @@
 import React from "react";
-import { Star } from "lucide-react";
+import { Star, Trash2 } from "lucide-react";
 import { cls, timeAgo } from "./utils";
 
 export default function ConversationRow({
@@ -7,6 +7,7 @@ export default function ConversationRow({
   active,
   onSelect,
   onTogglePin,
+  onDelete,
   showMeta,
 }) {
   const count = Array.isArray(data.messages)
@@ -41,21 +42,40 @@ export default function ConversationRow({
             </div>
           )}
         </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onTogglePin();
-          }}
-          title={data.pinned ? "Unpin" : "Pin"}
-          className="rounded-md p-1 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:bg-zinc-200/50 dark:text-zinc-300 dark:hover:bg-zinc-700/60"
-          aria-label={data.pinned ? "Unpin conversation" : "Pin conversation"}
-        >
-          {data.pinned ? (
-            <Star className="h-4 w-4 fill-zinc-800 text-zinc-800 dark:fill-zinc-200 dark:text-zinc-200" />
-          ) : (
-            <Star className="h-4 w-4" />
-          )}
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onTogglePin();
+            }}
+            title={data.pinned ? "Unpin" : "Pin"}
+            className="rounded-md p-1 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:bg-zinc-200/50 dark:text-zinc-300 dark:hover:bg-zinc-700/60"
+            aria-label={data.pinned ? "Unpin conversation" : "Pin conversation"}
+          >
+            {data.pinned ? (
+              <Star className="h-4 w-4 fill-zinc-800 text-zinc-800 dark:fill-zinc-200 dark:text-zinc-200" />
+            ) : (
+              <Star className="h-4 w-4" />
+            )}
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (
+                confirm(
+                  "Sei sicuro di voler eliminare questa conversazione? Questa azione non può essere annullata."
+                )
+              ) {
+                onDelete?.();
+              }
+            }}
+            title="Elimina conversazione"
+            className="rounded-md p-1 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:bg-red-50 hover:text-red-600 dark:text-zinc-300 dark:hover:bg-red-950/20 dark:hover:text-red-400"
+            aria-label="Elimina conversazione"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       <div className="pointer-events-none absolute left-[calc(100%+6px)] top-1 hidden w-64 rounded-xl border border-zinc-200 bg-white p-3 text-xs text-zinc-700 shadow-lg dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 md:group-hover:block">

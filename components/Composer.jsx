@@ -76,11 +76,12 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
 
   async function handleSend() {
     if (!value.trim() || sending) return;
+    const messageToSend = value;
     setSending(true);
+    setValue(""); // Clear immediately
+    inputRef.current?.focus();
     try {
-      await onSend?.(value);
-      setValue("");
-      inputRef.current?.focus();
+      await onSend?.(messageToSend);
     } finally {
       setSending(false);
     }

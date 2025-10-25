@@ -206,6 +206,14 @@ export default function AIAssistantUI() {
     );
   }
 
+  function deleteConversation(id) {
+    setConversations((prev) => prev.filter((c) => c.id !== id));
+    // If the deleted conversation was selected, clear selection
+    if (selectedId === id) {
+      setSelectedId(null);
+    }
+  }
+
   function createNewChat() {
     const id = Math.random().toString(36).slice(2);
     const item = {
