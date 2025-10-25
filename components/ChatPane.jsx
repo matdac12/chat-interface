@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, forwardRef, useImperativeHandle, useRef } from "react";
-import { Pencil, RefreshCw, Check, X, Square } from "lucide-react";
+import { Pencil, RefreshCw, Check, X, Square, Image, FileText } from "lucide-react";
 import Message from "./Message";
 import Composer from "./Composer";
 import { cls, timeAgo } from "./utils";
@@ -136,6 +136,18 @@ const ChatPane = forwardRef(function ChatPane(
                   </div>
                 ) : (
                   <Message role={m.role}>
+                    {m.attachment && (
+                      <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-zinc-200/50 dark:border-zinc-700/50">
+                        {m.attachment.type === 'image' ? (
+                          <Image className="h-3.5 w-3.5 text-zinc-400" />
+                        ) : (
+                          <FileText className="h-3.5 w-3.5 text-zinc-400" />
+                        )}
+                        <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                          {m.attachment.name}
+                        </span>
+                      </div>
+                    )}
                     <div className="whitespace-pre-wrap">{m.content}</div>
                   </Message>
                 )}
@@ -148,10 +160,10 @@ const ChatPane = forwardRef(function ChatPane(
 
       <Composer
         ref={composerRef}
-        onSend={async (text) => {
+        onSend={async (text, fileData) => {
           if (!text.trim()) return;
           setBusy(true);
-          await onSend?.(text);
+          await onSend?.(text, fileData);
           setBusy(false);
         }}
         busy={busy}

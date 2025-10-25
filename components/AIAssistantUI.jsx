@@ -256,7 +256,7 @@ export default function AIAssistantUI() {
     }
   }
 
-  async function sendMessage(convId, content) {
+  async function sendMessage(convId, content, fileData = null) {
     if (!content.trim()) return;
 
     const now = new Date().toISOString();
@@ -265,6 +265,10 @@ export default function AIAssistantUI() {
       role: "user",
       content,
       createdAt: now,
+      attachment: fileData ? {
+        name: fileData.name,
+        type: fileData.type.startsWith('image/') ? 'image' : 'pdf'
+      } : null,
     };
 
     // Check if this is the first message
@@ -301,6 +305,7 @@ export default function AIAssistantUI() {
         body: JSON.stringify({
           message: content,
           openaiConversationId: openaiConvId,
+          file: fileData, // Include file data if present
         }),
       });
 
@@ -479,7 +484,7 @@ export default function AIAssistantUI() {
           <ChatPane
             ref={composerRef}
             conversation={selected}
-            onSend={(content) => selected && sendMessage(selected.id, content)}
+            onSend={(content, fileData) => selected && sendMessage(selected.id, content, fileData)}
             onEditMessage={(messageId, newContent) =>
               selected && editMessage(selected.id, messageId, newContent)
             }
