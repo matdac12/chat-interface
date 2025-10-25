@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth-config";
+import {
+  getConversationById,
+  createMessage,
+  updateConversation,
+} from "@/lib/db";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -7,7 +14,14 @@ const openai = new OpenAI({
 
 export async function POST(req: NextRequest) {
   try {
-    const { message, openaiConversationId, file } = await req.json();
+    // Check authentication
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { message, conversationId, openaiConversationId, file } =
+      await req.json();
 
     if (!message || typeof message !== "string") {
       return NextResponse.json(
@@ -16,14 +30,42 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (!conversationId) {
+      return NextResponse.json(
+        { error: "Conversation ID is required" },
+        { status: 400 },
+      );
+    }
+
+    // Verify conversation belongs to user
+    const conversation = await getConversationById(
+      conversationId,
+      session.user.id
+    );
+
+    if (!conversation) {
+      return NextResponse.json(
+        { error: "Conversation not found" },
+        { status: 404 },
+      );
+    }
+
+    // Save user message to database
+    const userMessage = await createMessage(conversationId, "user", message);
+
     // Step 1: Get or create OpenAI conversation
-    let convId = openaiConversationId;
+    let convId = openaiConversationId || conversation.openai_conversation_id;
 
     if (!convId) {
       console.log("Creating new OpenAI conversation...");
-      const conversation = await openai.conversations.create();
-      convId = conversation.id;
+      const openaiConv = await openai.conversations.create();
+      convId = openaiConv.id;
       console.log("Created conversation:", convId);
+
+      // Update our database with the OpenAI conversation ID
+      await updateConversation(conversationId, session.user.id, {
+        openai_conversation_id: convId,
+      });
     } else {
       console.log("Using existing conversation:", convId);
     }
@@ -133,12 +175,21 @@ export async function POST(req: NextRequest) {
     console.log("Assistant response:", assistantText.substring(0, 100) + "...");
     console.log("Response length:", assistantText.length, "characters");
 
+    // Save assistant message to database
+    const assistantMessage = await createMessage(
+      conversationId,
+      "assistant",
+      assistantText
+    );
+
     // Return the complete response
     return NextResponse.json({
       success: true,
       conversationId: convId,
       message: assistantText,
       responseId: response.id,
+      userMessageId: userMessage.id,
+      assistantMessageId: assistantMessage.id,
     });
   } catch (error) {
     console.error("API route error:", error);

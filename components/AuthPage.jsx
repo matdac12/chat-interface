@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { signIn } from "next-auth/react";
 import { SignInCard } from "./auth/SignInCard";
-import { validateCredentials, createSession } from "@/lib/auth";
 
 export default function AuthPage({ onAuthSuccess }) {
   const [email, setEmail] = useState("");
@@ -16,21 +16,27 @@ export default function AuthPage({ onAuthSuccess }) {
     setError("");
     setIsLoading(true);
 
-    // Simulate a small delay for better UX
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    try {
+      // Use NextAuth signIn
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
 
-    // Validate credentials
-    if (validateCredentials(email, password)) {
-      // Create session
-      createSession(email, rememberMe);
-
-      // Success - notify parent component
-      if (onAuthSuccess) {
-        onAuthSuccess();
+      if (result?.error) {
+        // Failed authentication
+        setError("Email o password non corretti");
+        setIsLoading(false);
+      } else if (result?.ok) {
+        // Success - notify parent component
+        if (onAuthSuccess) {
+          onAuthSuccess();
+        }
       }
-    } else {
-      // Failed authentication
-      setError("Email o password non corretti");
+    } catch (err) {
+      console.error("Sign in error:", err);
+      setError("Si è verificato un errore durante il login");
       setIsLoading(false);
     }
   };

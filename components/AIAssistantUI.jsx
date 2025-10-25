@@ -1,19 +1,19 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Calendar, LayoutGrid, MoreHorizontal } from "lucide-react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import ChatPane from "./ChatPane";
 import GhostIconButton from "./GhostIconButton";
 import ThemeToggle from "./ThemeToggle";
-import {
-  INITIAL_CONVERSATIONS,
-  INITIAL_TEMPLATES,
-  INITIAL_FOLDERS,
-} from "./mockData";
 
 export default function AIAssistantUI() {
+  const { data: session } = useSession();
+  const queryClient = useQueryClient();
+
   const [theme, setTheme] = useState(() => {
     const saved =
       typeof window !== "undefined" && localStorage.getItem("theme");
@@ -57,11 +57,12 @@ export default function AIAssistantUI() {
       const raw = localStorage.getItem("sidebar-collapsed");
       return raw
         ? JSON.parse(raw)
-        : { pinned: true, recent: false, folders: true, templates: true };
+        : { pinned: true, recent: false };
     } catch {
-      return { pinned: true, recent: false, folders: true, templates: true };
+      return { pinned: true, recent: false };
     }
   });
+
   useEffect(() => {
     try {
       localStorage.setItem("sidebar-collapsed", JSON.stringify(collapsed));
@@ -70,7 +71,6 @@ export default function AIAssistantUI() {
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  // Load sidebar collapsed state from localStorage after mount to avoid hydration mismatch
   useEffect(() => {
     try {
       const saved = localStorage.getItem("sidebar-collapsed-state");
@@ -89,65 +89,121 @@ export default function AIAssistantUI() {
     } catch {}
   }, [sidebarCollapsed]);
 
-  const [conversations, setConversations] = useState(INITIAL_CONVERSATIONS);
   const [selectedId, setSelectedId] = useState(null);
-  const [templates, setTemplates] = useState(INITIAL_TEMPLATES);
-  const [folders, setFolders] = useState(INITIAL_FOLDERS);
-
-  // Load data from localStorage after mount to avoid hydration mismatch
-  useEffect(() => {
-    try {
-      const savedConversations = localStorage.getItem("conversations");
-      if (savedConversations) {
-        setConversations(JSON.parse(savedConversations));
-      }
-
-      const savedTemplates = localStorage.getItem("templates");
-      if (savedTemplates) {
-        setTemplates(JSON.parse(savedTemplates));
-      }
-
-      const savedFolders = localStorage.getItem("folders");
-      if (savedFolders) {
-        setFolders(JSON.parse(savedFolders));
-      }
-    } catch (error) {
-      console.error("Failed to load data from localStorage:", error);
-    }
-  }, []);
-
   const [query, setQuery] = useState("");
   const searchRef = useRef(null);
-
   const [isThinking, setIsThinking] = useState(false);
   const [thinkingConvId, setThinkingConvId] = useState(null);
+  const composerRef = useRef(null);
 
-  // Persist conversations to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem("conversations", JSON.stringify(conversations));
-    } catch (error) {
-      console.error("Failed to save conversations to localStorage:", error);
-    }
-  }, [conversations]);
+  // Fetch conversations from API using React Query
+  const {
+    data: conversationsData,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["conversations"],
+    queryFn: async () => {
+      const res = await fetch("/api/conversations");
+      if (!res.ok) throw new Error("Failed to fetch conversations");
+      const data = await res.json();
+      return data.conversations;
+    },
+    enabled: !!session,
+  });
 
-  // Persist templates to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem("templates", JSON.stringify(templates));
-    } catch (error) {
-      console.error("Failed to save templates to localStorage:", error);
-    }
-  }, [templates]);
+  const conversations = conversationsData || [];
 
-  // Persist folders to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem("folders", JSON.stringify(folders));
-    } catch (error) {
-      console.error("Failed to save folders to localStorage:", error);
-    }
-  }, [folders]);
+  // Create conversation mutation
+  const createConversationMutation = useMutation({
+    mutationFn: async (title = "Nuova Chat") => {
+      const res = await fetch("/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title }),
+      });
+      if (!res.ok) throw new Error("Failed to create conversation");
+      const data = await res.json();
+      return data.conversation;
+    },
+    onSuccess: (newConversation) => {
+      queryClient.setQueryData(["conversations"], (old = []) => [
+        newConversation,
+        ...old,
+      ]);
+      setSelectedId(newConversation.id);
+      setSidebarOpen(false);
+    },
+  });
+
+  // Update conversation mutation
+  const updateConversationMutation = useMutation({
+    mutationFn: async ({ id, updates }) => {
+      const res = await fetch(`/api/conversations/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      if (!res.ok) throw new Error("Failed to update conversation");
+      const data = await res.json();
+      return data.conversation;
+    },
+    onSuccess: (updatedConversation) => {
+      queryClient.setQueryData(["conversations"], (old = []) =>
+        old.map((conv) =>
+          conv.id === updatedConversation.id ? { ...conv, ...updatedConversation } : conv
+        )
+      );
+    },
+  });
+
+  // Delete conversation mutation
+  const deleteConversationMutation = useMutation({
+    mutationFn: async (id) => {
+      const res = await fetch(`/api/conversations/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete conversation");
+    },
+    onSuccess: (_, deletedId) => {
+      queryClient.setQueryData(["conversations"], (old = []) =>
+        old.filter((conv) => conv.id !== deletedId)
+      );
+      if (selectedId === deletedId) {
+        setSelectedId(null);
+      }
+    },
+  });
+
+  // Update message mutation
+  const updateMessageMutation = useMutation({
+    mutationFn: async ({ messageId, content }) => {
+      const res = await fetch(`/api/messages/${messageId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content }),
+      });
+      if (!res.ok) throw new Error("Failed to update message");
+      const data = await res.json();
+      return data.message;
+    },
+    onSuccess: (updatedMessage) => {
+      // Update the conversation in the cache
+      queryClient.setQueryData(["conversations"], (old = []) =>
+        old.map((conv) => {
+          if (conv.id === updatedMessage.conversationId) {
+            return {
+              ...conv,
+              messages: conv.messages.map((msg) =>
+                msg.id === updatedMessage.id ? updatedMessage : msg
+              ),
+            };
+          }
+          return conv;
+        })
+      );
+    },
+  });
 
   useEffect(() => {
     const onKey = (e) => {
@@ -166,7 +222,7 @@ export default function AIAssistantUI() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [sidebarOpen, conversations]);
+  }, [sidebarOpen]);
 
   useEffect(() => {
     if (!selectedId && conversations.length > 0) {
@@ -193,122 +249,77 @@ export default function AIAssistantUI() {
     .sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1))
     .slice(0, 10);
 
-  const folderCounts = React.useMemo(() => {
-    const map = Object.fromEntries(folders.map((f) => [f.name, 0]));
-    for (const c of conversations)
-      if (map[c.folder] != null) map[c.folder] += 1;
-    return map;
-  }, [conversations, folders]);
-
   function togglePin(id) {
-    setConversations((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, pinned: !c.pinned } : c)),
-    );
+    const conversation = conversations.find((c) => c.id === id);
+    if (conversation) {
+      updateConversationMutation.mutate({
+        id,
+        updates: { pinned: !conversation.pinned },
+      });
+    }
   }
 
   function deleteConversation(id) {
-    setConversations((prev) => prev.filter((c) => c.id !== id));
-    // If the deleted conversation was selected, clear selection
-    if (selectedId === id) {
+    deleteConversationMutation.mutate(id);
+  }
+
+  function createNewChat() {
+    createConversationMutation.mutate("Nuova Chat");
+  }
+
+  function clearAllChats() {
+    if (
+      confirm(
+        "Sei sicuro di voler eliminare tutte le conversazioni? Questa azione non può essere annullata."
+      )
+    ) {
+      conversations.forEach((conv) => {
+        deleteConversationMutation.mutate(conv.id);
+      });
       setSelectedId(null);
     }
   }
 
-  function createNewChat() {
-    const id = Math.random().toString(36).slice(2);
-    const item = {
-      id,
-      title: "Nuova Chat",
-      updatedAt: new Date().toISOString(),
-      messageCount: 0,
-      preview: "Inizia a scrivere...",
-      pinned: false,
-      folder: "Progetti Lavoro",
-      messages: [], // Ensure messages array is empty for new chats
-    };
-    setConversations((prev) => [item, ...prev]);
-    setSelectedId(id);
-    setSidebarOpen(false);
-  }
-
-  function createFolder() {
-    const name = prompt("Nome cartella");
-    if (!name) return;
-    if (folders.some((f) => f.name.toLowerCase() === name.toLowerCase()))
-      return alert("La cartella esiste già.");
-    setFolders((prev) => [
-      ...prev,
-      { id: Math.random().toString(36).slice(2), name },
-    ]);
-  }
-
-  function clearAllChats() {
-    // Clear conversations
-    setConversations([]);
-    setSelectedId(null);
-
-    // Clear localStorage
-    try {
-      localStorage.removeItem("conversations");
-      console.log("Tutte le chat sono state eliminate");
-    } catch (error) {
-      console.error("Errore durante l'eliminazione delle chat:", error);
-    }
-  }
-
-  async function sendMessage(convId, content, fileData = null) {
+  async function sendMessage(convId, content) {
     if (!content.trim()) return;
 
-    const now = new Date().toISOString();
-    const userMsg = {
-      id: Math.random().toString(36).slice(2),
+    const conversation = conversations.find((c) => c.id === convId);
+    if (!conversation) return;
+
+    // Optimistically add user message to UI
+    const optimisticUserMsg = {
+      id: `temp-${Date.now()}`,
       role: "user",
       content,
-      createdAt: now,
-      attachment: fileData ? {
-        name: fileData.name,
-        type: fileData.type.startsWith('image/') ? 'image' : 'pdf'
-      } : null,
-      // Store preview data for images (session-only, not persisted to localStorage)
-      attachmentPreview: fileData?.type.startsWith('image/') ? fileData.data : null,
-      attachmentMimeType: fileData?.type || null,
+      createdAt: new Date().toISOString(),
     };
 
-    // Check if this is the first message
-    const currentConv = conversations.find((c) => c.id === convId);
-    const isFirstMessage = !currentConv?.messages || currentConv.messages.length === 0;
-
-    // Add user message immediately
-    setConversations((prev) =>
-      prev.map((c) => {
+    queryClient.setQueryData(["conversations"], (old = []) =>
+      old.map((c) => {
         if (c.id !== convId) return c;
-        const msgs = [...(c.messages || []), userMsg];
         return {
           ...c,
-          messages: msgs,
-          updatedAt: now,
-          messageCount: msgs.length,
+          messages: [...(c.messages || []), optimisticUserMsg],
+          updatedAt: new Date().toISOString(),
           preview: content.slice(0, 80),
         };
-      }),
+      })
     );
 
-    // Start thinking state
     setIsThinking(true);
     setThinkingConvId(convId);
 
-    try {
-      // Get the current conversation to check for existing OpenAI conversation ID
-      const openaiConvId = currentConv?.openaiConversationId;
+    const isFirstMessage = !conversation.messages || conversation.messages.length === 0;
 
-      // Call our API endpoint
+    try {
+      // Call API to send message
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: content,
-          openaiConversationId: openaiConvId,
-          file: fileData, // Include file data if present
+          conversationId: convId,
+          openaiConversationId: conversation.openaiConversationId,
         }),
       });
 
@@ -316,90 +327,55 @@ export default function AIAssistantUI() {
         throw new Error(`API request failed with status ${response.status}`);
       }
 
-      // Parse the JSON response (non-streaming)
       const data = await response.json();
 
       if (!data.success) {
         throw new Error(data.error || "API request failed");
       }
 
-      console.log("Received response from OpenAI");
-      console.log("Conversation ID:", data.conversationId);
-      console.log("Message length:", data.message.length);
-
-      // Add assistant message
-      const assistantMsgId = Math.random().toString(36).slice(2);
-      setConversations((prev) =>
-        prev.map((c) => {
-          if (c.id !== convId) return c;
-
-          const assistantMsg = {
-            id: assistantMsgId,
-            role: "assistant",
-            content: data.message,
-            createdAt: new Date().toISOString(),
-          };
-
-          const updatedMessages = [...(c.messages || []), assistantMsg];
-
-          return {
-            ...c,
-            messages: updatedMessages,
-            openaiConversationId: data.conversationId,
-            updatedAt: new Date().toISOString(),
-            messageCount: updatedMessages.length,
-            preview: data.message.slice(0, 80),
-          };
-        }),
-      );
+      // Refresh conversations to get updated messages from server
+      await queryClient.invalidateQueries(["conversations"]);
     } catch (error) {
       console.error("Failed to send message:", error);
+      // Remove optimistic update on error
+      queryClient.setQueryData(["conversations"], (old = []) =>
+        old.map((c) => {
+          if (c.id !== convId) return c;
+          return {
+            ...c,
+            messages: c.messages.filter((m) => m.id !== optimisticUserMsg.id),
+          };
+        })
+      );
     } finally {
       setIsThinking(false);
       setThinkingConvId(null);
     }
 
-    // Generate title automatically after first message (runs in background, independently)
+    // Generate title automatically after first message (runs in background)
     if (isFirstMessage) {
       console.log("First message detected - generating title in background...");
       fetch("/api/generate-title", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: content }),
+        body: JSON.stringify({ message: content, conversationId: convId }),
       })
         .then((response) => response.json())
         .then((titleData) => {
           if (titleData.success && titleData.title) {
             console.log("Generated title:", titleData.title);
-            // Update conversation title
-            setConversations((prev) =>
-              prev.map((c) =>
-                c.id === convId ? { ...c, title: titleData.title } : c
-              ),
-            );
+            // Refresh conversations to get updated title
+            queryClient.invalidateQueries(["conversations"]);
           }
         })
         .catch((titleError) => {
           console.error("Failed to generate title:", titleError);
-          // Don't throw - title generation failure shouldn't break the chat
         });
     }
   }
+
   function editMessage(convId, messageId, newContent) {
-    const now = new Date().toISOString();
-    setConversations((prev) =>
-      prev.map((c) => {
-        if (c.id !== convId) return c;
-        const msgs = (c.messages || []).map((m) =>
-          m.id === messageId ? { ...m, content: newContent, editedAt: now } : m,
-        );
-        return {
-          ...c,
-          messages: msgs,
-          preview: msgs[msgs.length - 1]?.content?.slice(0, 80) || c.preview,
-        };
-      }),
-    );
+    updateMessageMutation.mutate({ messageId, content: newContent });
   }
 
   function resendMessage(convId, messageId) {
@@ -413,16 +389,6 @@ export default function AIAssistantUI() {
     setIsThinking(false);
     setThinkingConvId(null);
   }
-
-  function handleUseTemplate(template) {
-    // This will be passed down to the Composer component
-    // The Composer will handle inserting the template content
-    if (composerRef.current) {
-      composerRef.current.insertTemplate(template.content);
-    }
-  }
-
-  const composerRef = useRef(null);
 
   const selected = conversations.find((c) => c.id === selectedId) || null;
 
@@ -462,19 +428,19 @@ export default function AIAssistantUI() {
           conversations={conversations}
           pinned={pinned}
           recent={recent}
-          folders={folders}
-          folderCounts={folderCounts}
+          folders={[]}
+          folderCounts={{}}
           selectedId={selectedId}
           onSelect={(id) => setSelectedId(id)}
           togglePin={togglePin}
           query={query}
           setQuery={setQuery}
           searchRef={searchRef}
-          createFolder={createFolder}
+          createFolder={() => {}}
           createNewChat={createNewChat}
-          templates={templates}
-          setTemplates={setTemplates}
-          onUseTemplate={handleUseTemplate}
+          templates={[]}
+          setTemplates={() => {}}
+          onUseTemplate={() => {}}
           onClearAll={clearAllChats}
         />
 
@@ -487,7 +453,7 @@ export default function AIAssistantUI() {
           <ChatPane
             ref={composerRef}
             conversation={selected}
-            onSend={(content, fileData) => selected && sendMessage(selected.id, content, fileData)}
+            onSend={(content) => selected && sendMessage(selected.id, content)}
             onEditMessage={(messageId, newContent) =>
               selected && editMessage(selected.id, messageId, newContent)
             }
