@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Calendar, LayoutGrid, MoreHorizontal } from "lucide-react";
+import { Calendar, LayoutGrid, MoreHorizontal, Menu } from "lucide-react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import ChatPane from "./ChatPane";
@@ -394,8 +394,15 @@ export default function AIAssistantUI() {
 
   return (
     <div className="h-screen w-full bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
-      <div className="md:hidden sticky top-0 z-40 flex items-center gap-2 border-b border-zinc-200/60 bg-white/80 px-3 py-2 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/70">
-        <div className="ml-1 flex items-center gap-2 text-sm font-semibold tracking-tight">
+      {/* Mobile header - only shown below 1024px */}
+      <div className="lg:hidden sticky top-0 z-40 flex items-center gap-2 border-b border-zinc-200/60 bg-white/80 px-3 py-2 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/70">
+        <GhostIconButton
+          label="Menu"
+          onClick={() => setSidebarOpen(true)}
+        >
+          <Menu className="h-5 w-5" />
+        </GhostIconButton>
+        <div className="flex items-center gap-2 text-sm font-semibold tracking-tight">
           <span className="inline-flex h-4 w-4 items-center justify-center">
             ✱
           </span>{" "}

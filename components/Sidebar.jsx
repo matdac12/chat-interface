@@ -152,12 +152,25 @@ export default function Sidebar({
 
   if (sidebarCollapsed) {
     return (
-      <motion.aside
-        initial={{ width: 320 }}
-        animate={{ width: 64 }}
-        transition={{ type: "spring", stiffness: 260, damping: 28 }}
-        className="z-50 flex h-full shrink-0 flex-col border-r border-zinc-200/60 bg-white dark:border-zinc-800 dark:bg-zinc-900"
-      >
+      <>
+        {/* Mobile backdrop overlay - only shown on mobile when sidebar is open */}
+        {open && (
+          <div
+            className="lg:hidden fixed inset-0 bg-black/50 z-40"
+            onClick={onClose}
+            aria-label="Close sidebar"
+          />
+        )}
+
+        <motion.aside
+          initial={{ width: 320 }}
+          animate={{ width: 64 }}
+          transition={{ type: "spring", stiffness: 260, damping: 28 }}
+          className={`
+            z-50 h-full shrink-0 flex-col border-r border-zinc-200/60 bg-white dark:border-zinc-800 dark:bg-zinc-900
+            ${open ? 'flex' : 'hidden'} lg:flex
+          `}
+        >
         <div className="flex items-center justify-center border-b border-zinc-200/60 px-3 py-3 dark:border-zinc-800">
           <button
             onClick={() => setSidebarCollapsed(false)}
@@ -205,16 +218,29 @@ export default function Sidebar({
           </div>
         </div>
       </motion.aside>
+      </>
     );
   }
 
   return (
     <>
+      {/* Mobile backdrop overlay - only shown on mobile when sidebar is open */}
+      {open && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={onClose}
+          aria-label="Close sidebar"
+        />
+      )}
+
       <motion.aside
         initial={{ width: 320 }}
         animate={{ width: 320 }}
         transition={{ type: "spring", stiffness: 260, damping: 28 }}
-        className="z-50 flex h-full w-80 shrink-0 flex-col border-r border-zinc-200/60 bg-white dark:border-zinc-800 dark:bg-zinc-900"
+        className={`
+          z-50 h-full w-80 shrink-0 flex-col border-r border-zinc-200/60 bg-white dark:border-zinc-800 dark:bg-zinc-900
+          ${open ? 'flex' : 'hidden'} lg:flex
+        `}
       >
             <div className="flex items-center gap-2 border-b border-zinc-200/60 px-3 py-3 dark:border-zinc-800">
               <div className="flex items-center gap-2">
