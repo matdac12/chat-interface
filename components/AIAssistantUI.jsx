@@ -242,6 +242,20 @@ export default function AIAssistantUI() {
     ]);
   }
 
+  function clearAllChats() {
+    // Clear conversations
+    setConversations([]);
+    setSelectedId(null);
+
+    // Clear localStorage
+    try {
+      localStorage.removeItem("conversations");
+      console.log("Tutte le chat sono state eliminate");
+    } catch (error) {
+      console.error("Errore durante l'eliminazione delle chat:", error);
+    }
+  }
+
   async function sendMessage(convId, content) {
     if (!content.trim()) return;
 
@@ -424,6 +438,7 @@ export default function AIAssistantUI() {
           templates={templates}
           setTemplates={setTemplates}
           onUseTemplate={handleUseTemplate}
+          onClearAll={clearAllChats}
         />
 
         <main className="relative flex min-w-0 flex-1 flex-col">
