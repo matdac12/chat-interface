@@ -28,25 +28,32 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate file type
+    // Note: We're flexible with formats because different browsers produce different types:
+    // - Chrome/Firefox: audio/webm
+    // - Safari iOS/Desktop: audio/mp4, audio/x-m4a
+    // - Some Android: audio/ogg
     const validTypes = [
       "audio/webm",
+      "audio/webm;codecs=opus",
       "audio/mp3",
       "audio/mpeg",
       "audio/wav",
       "audio/m4a",
+      "audio/x-m4a",
       "audio/mp4",
       "audio/ogg",
+      "audio/ogg;codecs=opus",
     ];
 
     if (!validTypes.includes(audioFile.type)) {
-      console.log("File type received:", audioFile.type);
-      // Still allow it - OpenAI is flexible with formats
+      console.log("⚠️ Non-standard audio MIME type received:", audioFile.type);
+      console.log("Attempting transcription anyway - OpenAI is flexible with formats");
     }
 
-    console.log("Transcribing audio file:", {
+    console.log("📝 Transcribing audio file:", {
       name: audioFile.name,
       type: audioFile.type,
-      size: audioFile.size,
+      size: `${(audioFile.size / 1024).toFixed(2)} KB`,
     });
 
     // Convert File to Buffer for OpenAI API

@@ -24,6 +24,7 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
   const inputRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const audioMimeTypeRef = useRef("audio/webm"); // Store the actual MIME type used
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -206,7 +207,32 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
   async function startRecording() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+
+      // Detect supported MIME type for cross-browser compatibility
+      // Safari iOS doesn't support webm, so we need to check alternatives
+      const mimeTypes = [
+        "audio/webm;codecs=opus",
+        "audio/webm",
+        "audio/mp4",
+        "audio/ogg;codecs=opus",
+        "audio/wav",
+      ];
+
+      let selectedMimeType = "audio/webm"; // fallback
+      for (const mimeType of mimeTypes) {
+        if (MediaRecorder.isTypeSupported(mimeType)) {
+          selectedMimeType = mimeType;
+          console.log("Selected audio MIME type:", selectedMimeType);
+          break;
+        }
+      }
+
+      // Store the MIME type for later use
+      audioMimeTypeRef.current = selectedMimeType;
+
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: selectedMimeType,
+      });
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
@@ -217,8 +243,9 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
       };
 
       mediaRecorder.onstop = async () => {
+        // Use the actual MIME type that was recorded, not a hardcoded one
         const audioBlob = new Blob(audioChunksRef.current, {
-          type: "audio/webm",
+          type: audioMimeTypeRef.current,
         });
 
         // Stop all tracks to release microphone
@@ -248,8 +275,23 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
   async function transcribeAudio(audioBlob) {
     setIsTranscribing(true);
     try {
+      // Determine file extension based on MIME type
+      const mimeType = audioMimeTypeRef.current;
+      let fileExtension = "webm";
+      if (mimeType.includes("mp4")) fileExtension = "mp4";
+      else if (mimeType.includes("ogg")) fileExtension = "ogg";
+      else if (mimeType.includes("wav")) fileExtension = "wav";
+      else if (mimeType.includes("webm")) fileExtension = "webm";
+
+      const fileName = `recording.${fileExtension}`;
+      console.log("Sending audio for transcription:", {
+        fileName,
+        mimeType,
+        size: audioBlob.size,
+      });
+
       const formData = new FormData();
-      formData.append("audio", audioBlob, "recording.webm");
+      formData.append("audio", audioBlob, fileName);
 
       const response = await fetch("/api/transcribe", {
         method: "POST",
@@ -257,7 +299,8 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
       });
 
       if (!response.ok) {
-        throw new Error("Transcription failed");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Transcription failed");
       }
 
       const data = await response.json();
