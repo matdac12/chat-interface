@@ -95,10 +95,26 @@ export default function AIAssistantUI() {
   const [isThinking, setIsThinking] = useState(false);
   const [thinkingConvId, setThinkingConvId] = useState(null);
   const [streamingMessageId, setStreamingMessageId] = useState(null);
-  const [streamingContent, setStreamingContent] = useState("");
-  const [isStreamingActive, setIsStreamingActive] = useState(false);
+
   const [useStreaming, setUseStreaming] = useState(true);
+  const [accumulatedStreamingContent, setAccumulatedStreamingContent] = useState("");
   const composerRef = useRef(null);
+
+  // Handle streaming content updates - EXACTLY like TAVOLO_AI (lines 62-70)
+  useEffect(() => {
+    if (streamingMessageId && accumulatedStreamingContent) {
+      queryClient.setQueryData(["conversations"], (old = []) =>
+        old.map((c) => ({
+          ...c,
+          messages: c.messages?.map((msg) =>
+            msg.id === streamingMessageId && msg.role === 'assistant'
+              ? { ...msg, content: accumulatedStreamingContent, isStreaming: true }
+              : msg
+          ) || []
+        }))
+      );
+    }
+  }, [streamingMessageId, accumulatedStreamingContent, queryClient]);
 
   // Fetch conversations from API using React Query
   const {
@@ -316,7 +332,13 @@ export default function AIAssistantUI() {
         .then((titleData) => {
           if (titleData.success && titleData.title) {
             console.log("Generated title:", titleData.title);
-            queryClient.invalidateQueries(["conversations"]);
+            // DON'T refresh during streaming - it will be refreshed when streaming completes
+            // This prevents the "two lines" issue user reported
+            if (!streamingMessageId) {
+              queryClient.invalidateQueries(["conversations"]);
+            } else {
+              console.log("📌 Title generated but not refreshing - streaming in progress");
+            }
           }
         })
         .catch((titleError) => {
@@ -351,18 +373,21 @@ export default function AIAssistantUI() {
       })
     );
 
-    // Set up streaming state
-    setStreamingContent("");
-    setIsStreamingActive(true);
-    setStreamingMessageId(`streaming-${Date.now()}`);
+    // DON'T create placeholder message - just use thinking indicator
+    // The message will be created when first chunk arrives
+    setStreamingMessageId(null);
+    setAccumulatedStreamingContent(""); // Reset accumulated content
     setThinkingConvId(convId);
     setIsThinking(true);
+
+    // Track the assistant message ID across callbacks
+    let currentStreamingMessageId = null;
 
     try {
       // Import streaming client dynamically
       const { streamingClient } = await import("@/lib/streaming-client");
 
-      // Start streaming with callbacks passed as options
+      // Start streaming - content updates happen via useEffect watching accumulatedStreamingContent
       await streamingClient.sendMessage(
         convId,
         content,
@@ -370,56 +395,108 @@ export default function AIAssistantUI() {
         fileData,
         {
           onContent: (newContent, isComplete) => {
-            console.log("📥 Content received:", { newContent, isComplete, length: newContent.length });
+            // On first chunk: create the assistant message
+            if (!currentStreamingMessageId && !isComplete) {
+              const tempAssistantId = `temp-assistant-${Date.now()}`;
+              currentStreamingMessageId = tempAssistantId;
+              setStreamingMessageId(tempAssistantId);
+              setIsThinking(false);
+
+              // Create assistant message in conversation
+              queryClient.setQueryData(["conversations"], (old = []) =>
+                old.map((c) => {
+                  if (c.id !== convId) return c;
+                  return {
+                    ...c,
+                    messages: [
+                      ...(c.messages || []),
+                      {
+                        id: tempAssistantId,
+                        role: "assistant",
+                        content: "", // Will be populated by useEffect
+                        createdAt: new Date().toISOString(),
+                        isStreaming: true,
+                      },
+                    ],
+                    updatedAt: new Date().toISOString(),
+                  };
+                })
+              );
+            }
+
+            // Accumulate content - triggers useEffect to update message
             if (!isComplete) {
-              setStreamingContent((prev) => {
-                if (!prev && newContent) {
-                  setIsThinking(false); // first chunk arrived; hide thinking indicator
-                }
-                const updated = prev + newContent;
-                console.log("📝 Updated content length:", updated.length);
-                return updated;
-              });
+              setAccumulatedStreamingContent(prev => prev + newContent);
             }
           },
           onComplete: (finalContent) => {
             console.log("✅ Streaming completed, final length:", finalContent.length);
-            console.log("✅ Refreshing conversations from database");
-            setIsStreamingActive(false);
+
+            // Update message with final content - EXACTLY like TAVOLO_AI (lines 135-145)
+            queryClient.setQueryData(["conversations"], (old = []) =>
+              old.map((c) => {
+                if (c.id !== convId) return c;
+                return {
+                  ...c,
+                  messages: c.messages.map((m) =>
+                    m.id === currentStreamingMessageId
+                      ? { ...m, content: finalContent, isStreaming: false, streamingComplete: true }
+                      : m
+                  ),
+                  updatedAt: new Date().toISOString(),
+                  preview: finalContent.slice(0, 80),
+                };
+              })
+            );
+
+            // Clear streaming state - EXACTLY like TAVOLO_AI (line 156)
             setStreamingMessageId(null);
-            setStreamingContent("");
+            setAccumulatedStreamingContent("");
             setThinkingConvId(null);
             setIsThinking(false);
-            // Refresh conversations to get the final message from database
+
+            // Refresh from database to replace temp message with real one (background)
+            console.log("✅ Refreshing conversations from database");
             queryClient.invalidateQueries(["conversations"]);
           },
           onError: (error) => {
             console.error("❌ Streaming error:", error);
-            setIsStreamingActive(false);
+            // Remove the failed streaming message - EXACTLY like TAVOLO_AI (line 163)
+            if (currentStreamingMessageId) {
+              queryClient.setQueryData(["conversations"], (old = []) =>
+                old.map((c) => {
+                  if (c.id !== convId) return c;
+                  return {
+                    ...c,
+                    messages: c.messages.filter((m) => m.id !== currentStreamingMessageId),
+                  };
+                })
+              );
+            }
             setStreamingMessageId(null);
-            setStreamingContent("");
+            setAccumulatedStreamingContent("");
             setThinkingConvId(null);
             setIsThinking(false);
-            // Don't throw here - just log and clean up
           }
         }
       );
 
     } catch (error) {
       console.error("Streaming setup failed:", error);
-      // Clean up optimistic update
+      // Clean up both user and assistant messages on failure
       queryClient.setQueryData(["conversations"], (old = []) =>
         old.map((c) => {
           if (c.id !== convId) return c;
           return {
             ...c,
-            messages: c.messages.filter((m) => m.id !== optimisticUserMsg.id),
+            messages: c.messages.filter(
+              (m) => m.id !== optimisticUserMsg.id && (!currentStreamingMessageId || m.id !== currentStreamingMessageId)
+            ),
           };
         })
       );
-      setIsStreamingActive(false);
       setStreamingMessageId(null);
-      setStreamingContent("");
+      setAccumulatedStreamingContent("");
       setThinkingConvId(null);
       setIsThinking(false);
       throw error; // Re-throw to trigger fallback
@@ -580,9 +657,6 @@ export default function AIAssistantUI() {
               selected && resendMessage(selected.id, messageId)
             }
             isThinking={isThinking && thinkingConvId === selected?.id}
-            isStreamingActive={isStreamingActive && thinkingConvId === selected?.id}
-            streamingContent={streamingContent}
-            streamingMessageId={streamingMessageId}
           />
         </main>
       </div>
