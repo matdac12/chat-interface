@@ -152,7 +152,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Step 3: Create response with stored prompt
+    // Step 3: Build user name variable for prompt
+    const userName = `${session.user.name}${session.user.lastName ? ` ${session.user.lastName}` : ''} (${session.user.email})`;
+    console.log("User name for prompt:", userName);
+
+    // Step 4: Create response with stored prompt and variables
     console.log(
       "Creating response with prompt_id:",
       process.env.OPENAI_PROMPT_ID,
@@ -161,6 +165,9 @@ export async function POST(req: NextRequest) {
       model: "gpt-5-nano",
       prompt: {
         id: process.env.OPENAI_PROMPT_ID!,
+        variables: {
+          user_name: userName
+        }
       },
       input: responseInput,
       conversation: convId,

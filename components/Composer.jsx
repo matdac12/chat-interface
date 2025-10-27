@@ -353,7 +353,8 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
         className={cls(
           "mx-auto flex flex-col rounded-2xl border bg-white shadow-sm dark:bg-zinc-950 transition-all duration-200",
           "max-w-3xl border-zinc-300 dark:border-zinc-700 p-3",
-          isDragging && "border-blue-500 dark:border-blue-500 bg-blue-50 dark:bg-blue-950/20",
+          isDragging &&
+            "border-blue-500 dark:border-blue-500 bg-blue-50 dark:bg-blue-950/20",
         )}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
@@ -422,7 +423,7 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
             rows={1}
             className={cls(
               "w-full resize-none bg-transparent text-sm outline-none placeholder:text-zinc-400 transition-all duration-200",
-              "px-0 py-2 min-h-[40px] text-left",
+              "px-0 py-2 min-h-10 text-left",
             )}
             style={{
               height: "auto",

@@ -4,7 +4,6 @@ import { useState, forwardRef, useImperativeHandle, useRef } from "react";
 import { Pencil, RefreshCw, Check, X, Image, FileText } from "lucide-react";
 import Message from "./Message";
 import Composer from "./Composer";
-import StreamingMessage from "./StreamingMessage";
 import { cls, timeAgo } from "./utils";
 
 function ThinkingMessage() {
@@ -60,9 +59,6 @@ const ChatPane = forwardRef(function ChatPane(
     onEditMessage,
     onResendMessage,
     isThinking,
-    isStreamingActive,
-    streamingContent,
-    streamingMessageId,
   },
   ref,
 ) {
@@ -202,30 +198,19 @@ const ChatPane = forwardRef(function ChatPane(
                         )}
                       </div>
                     )}
-                    <div className="whitespace-pre-wrap">{m.content}</div>
+                    <div className="whitespace-pre-wrap">
+                      {/* Content is updated directly in message object by useEffect */}
+                      {m.content}
+                    </div>
+                    {/* Show streaming indicator for assistant messages that are actively streaming */}
+                    {m.isStreaming && m.role === 'assistant' && (
+                      <span className="ml-1 inline-block h-3 w-0.5 animate-pulse bg-blue-500" />
+                    )}
                   </Message>
                 )}
               </div>
             ))}
-            {/* Show streaming message when active */}
-            {isStreamingActive && streamingContent && (
-              <div>
-                {console.log("🎨 Rendering StreamingMessage:", {
-                  isStreamingActive,
-                  streamingContentLength: streamingContent?.length || 0,
-                  streamingMessageId
-                })}
-                <StreamingMessage
-                  key={streamingMessageId}
-                  content={streamingContent || ""}
-                  isStreaming={isStreamingActive}
-                  isComplete={false}
-                  streamingSpeed={50}
-                  showTypingIndicator={true}
-                />
-              </div>
-            )}
-            {/* Show thinking indicator when not streaming */}
+            {/* Show thinking indicator when waiting for first chunk */}
             {isThinking && <ThinkingMessage />}
           </>
         )}

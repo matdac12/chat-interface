@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 
 export default function StreamingMessage({
   content,
@@ -8,66 +8,17 @@ export default function StreamingMessage({
   isComplete = false,
   onComplete,
   className = "",
-  streamingSpeed = 50, // Characters per second for animation effect
   showTypingIndicator = true,
 }) {
-  const [displayedContent, setDisplayedContent] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-  const [finalContent, setFinalContent] = useState("");
-  const [pendingQueue, setPendingQueue] = useState("");
-  const lastContentRef = useRef("");
-
-  // Track incoming content chunks and queue only the new delta
-  useEffect(() => {
-    if (!content) {
-      setDisplayedContent("");
-      setPendingQueue("");
-      lastContentRef.current = "";
-      return;
-    }
-
-    if (content.length > lastContentRef.current.length) {
-      const delta = content.slice(lastContentRef.current.length);
-      lastContentRef.current = content;
-      setPendingQueue((prev) => prev + delta);
-    }
-  }, [content]);
-
-  // Drain the pending queue at a consistent pace
-  useEffect(() => {
-    if (!pendingQueue.length) {
-      if (!isStreaming) setIsTyping(false);
-      return;
-    }
-
-    setIsTyping(true);
-    const delay = Math.max(10, 1000 / streamingSpeed);
-    const timeout = setTimeout(() => {
-      setDisplayedContent((prev) => prev + pendingQueue[0]);
-      setPendingQueue((prev) => prev.slice(1));
-    }, delay);
-
-    return () => clearTimeout(timeout);
-  }, [pendingQueue, streamingSpeed, isStreaming]);
-
-  // Show final content immediately when streaming completes
-  useEffect(() => {
-    if (isComplete && content) {
-      setDisplayedContent(content);
-      setPendingQueue("");
-      lastContentRef.current = content;
-      setFinalContent(content);
-      setIsTyping(false);
-    }
-  }, [isComplete, content]);
+  // SIMPLIFIED: Just show content directly as it arrives from backend
+  // No animation, no queuing - backend streaming is already paced by OpenAI
 
   // Handle completion callback
   useEffect(() => {
-    if (isComplete && content && onComplete && finalContent !== content) {
-      setFinalContent(content);
+    if (isComplete && content && onComplete) {
       onComplete(content);
     }
-  }, [isComplete, content, onComplete, finalContent]);
+  }, [isComplete, content, onComplete]);
 
   return (
     <>
@@ -132,7 +83,7 @@ export default function StreamingMessage({
           <div className="flex items-center gap-2">
             <span>Assistente</span>
             {/* Streaming status badge */}
-            {(isStreaming || isTyping) && (
+            {isStreaming && (
               <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300">
                 <span className="pulse-dot" />
                 In streaming...
@@ -141,11 +92,11 @@ export default function StreamingMessage({
           </div>
         </div>
 
-        {/* Main streaming content */}
+        {/* Main streaming content - NO ANIMATION, just show chunks as they arrive */}
         <div className="streaming-content text-sm text-zinc-900 dark:text-zinc-100">
-          {displayedContent}
+          {content}
           {/* Show typing indicator while streaming */}
-          {(isStreaming || isTyping) && showTypingIndicator && (
+          {isStreaming && showTypingIndicator && (
             <span className="typing-cursor">|</span>
           )}
         </div>
