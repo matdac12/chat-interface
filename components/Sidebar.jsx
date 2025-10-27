@@ -20,8 +20,9 @@ import ThemeToggle from "./ThemeToggle";
 import CreateFolderModal from "./CreateFolderModal";
 import CreateTemplateModal from "./CreateTemplateModal";
 import SearchModal from "./SearchModal";
-import SettingsPopover from "./SettingsPopover";
+import SettingsDropdown from "./SettingsDropdown";
 import ProfileCard from "./ProfileCard";
+import { ScrollArea } from "./ui/scroll-area";
 import { cls } from "./utils";
 import { useState, useEffect } from "react";
 import { getSession } from "@/lib/auth";
@@ -196,14 +197,14 @@ export default function Sidebar({
           </button>
 
           <div className="mt-auto mb-4">
-            <SettingsPopover>
+            <SettingsDropdown>
               <button
                 className="rounded-xl p-2 hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:hover:bg-zinc-800"
                 title="Settings"
               >
                 <Settings className="h-5 w-5" />
               </button>
-            </SettingsPopover>
+            </SettingsDropdown>
           </div>
         </div>
       </motion.aside>
@@ -269,135 +270,139 @@ export default function Sidebar({
           </button>
         </div>
 
-        <nav className="mt-4 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-2 pb-4">
-          <SidebarSection
-            icon={<Star className="h-4 w-4" />}
-            title="PREFERITI"
-            collapsed={collapsed.pinned}
-            onToggle={() => setCollapsed((s) => ({ ...s, pinned: !s.pinned }))}
-          >
-            {pinned.length === 0 ? (
-              <div className="select-none rounded-lg border border-dashed border-zinc-200 px-3 py-3 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
-                Fissa le conversazioni importanti per un accesso rapido.
-              </div>
-            ) : (
-              pinned.map((c) => (
-                <ConversationRow
-                  key={c.id}
-                  data={c}
-                  active={c.id === selectedId}
-                  onSelect={() => onSelect(c.id)}
-                  onTogglePin={() => togglePin(c.id)}
-                  onDelete={() => onDeleteConversation(c.id)}
-                />
-              ))
-            )}
-          </SidebarSection>
-
-          <SidebarSection
-            icon={<Clock className="h-4 w-4" />}
-            title="RECENTI"
-            collapsed={collapsed.recent}
-            onToggle={() => setCollapsed((s) => ({ ...s, recent: !s.recent }))}
-          >
-            {recent.length === 0 ? (
-              <div className="select-none rounded-lg border border-dashed border-zinc-200 px-3 py-3 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
-                Nessuna conversazione. Iniziane una nuova!
-              </div>
-            ) : (
-              recent.map((c) => (
-                <ConversationRow
-                  key={c.id}
-                  data={c}
-                  active={c.id === selectedId}
-                  onSelect={() => onSelect(c.id)}
-                  onTogglePin={() => togglePin(c.id)}
-                  onDelete={() => onDeleteConversation(c.id)}
-                  showMeta
-                />
-              ))
-            )}
-          </SidebarSection>
-
-          {/* TEMPORARILY HIDDEN - Folders section (uncomment to re-enable) */}
-          {/* <SidebarSection
-                icon={<FolderIcon className="h-4 w-4" />}
-                title="CARTELLE"
-                collapsed={collapsed.folders}
-                onToggle={() =>
-                  setCollapsed((s) => ({ ...s, folders: !s.folders }))
-                }
+        <nav className="mt-4 flex min-h-0 flex-1 flex-col px-2">
+          <ScrollArea className="h-full">
+            <div className="flex flex-col gap-4 pb-4">
+              <SidebarSection
+                icon={<Star className="h-4 w-4" />}
+                title="PREFERITI"
+                collapsed={collapsed.pinned}
+                onToggle={() => setCollapsed((s) => ({ ...s, pinned: !s.pinned }))}
               >
-                <div className="-mx-1">
-                  <button
-                    onClick={() => setShowCreateFolderModal(true)}
-                    className="mb-2 inline-flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                  >
-                    <Plus className="h-4 w-4" /> Crea cartella
-                  </button>
-
-                  {folders.map((f) => (
-                    <FolderRow
-                      key={f.id}
-                      name={f.name}
-                      count={folderCounts[f.name] || 0}
-                      conversations={getConversationsByFolder(f.name)}
-                      selectedId={selectedId}
-                      onSelect={onSelect}
-                      togglePin={togglePin}
-                      onDeleteFolder={handleDeleteFolder}
-                      onRenameFolder={handleRenameFolder}
+                {pinned.length === 0 ? (
+                  <div className="select-none rounded-lg border border-dashed border-zinc-200 px-3 py-3 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+                    Fissa le conversazioni importanti per un accesso rapido.
+                  </div>
+                ) : (
+                  pinned.map((c) => (
+                    <ConversationRow
+                      key={c.id}
+                      data={c}
+                      active={c.id === selectedId}
+                      onSelect={() => onSelect(c.id)}
+                      onTogglePin={() => togglePin(c.id)}
+                      onDelete={() => onDeleteConversation(c.id)}
                     />
-                  ))}
-                </div>
-              </SidebarSection> */}
+                  ))
+                )}
+              </SidebarSection>
 
-          {/* TEMPORARILY HIDDEN - Templates section (uncomment to re-enable) */}
-          {/* <SidebarSection
-                icon={<FileText className="h-4 w-4" />}
-                title="MODELLI"
-                collapsed={collapsed.templates}
-                onToggle={() =>
-                  setCollapsed((s) => ({ ...s, templates: !s.templates }))
-                }
+              <SidebarSection
+                icon={<Clock className="h-4 w-4" />}
+                title="RECENTI"
+                collapsed={collapsed.recent}
+                onToggle={() => setCollapsed((s) => ({ ...s, recent: !s.recent }))}
               >
-                <div className="-mx-1">
-                  <button
-                    onClick={() => setShowCreateTemplateModal(true)}
-                    className="mb-2 inline-flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                {recent.length === 0 ? (
+                  <div className="select-none rounded-lg border border-dashed border-zinc-200 px-3 py-3 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+                    Nessuna conversazione. Iniziane una nuova!
+                  </div>
+                ) : (
+                  recent.map((c) => (
+                    <ConversationRow
+                      key={c.id}
+                      data={c}
+                      active={c.id === selectedId}
+                      onSelect={() => onSelect(c.id)}
+                      onTogglePin={() => togglePin(c.id)}
+                      onDelete={() => onDeleteConversation(c.id)}
+                      showMeta
+                    />
+                  ))
+                )}
+              </SidebarSection>
+
+              {/* TEMPORARILY HIDDEN - Folders section (uncomment to re-enable) */}
+              {/* <SidebarSection
+                    icon={<FolderIcon className="h-4 w-4" />}
+                    title="CARTELLE"
+                    collapsed={collapsed.folders}
+                    onToggle={() =>
+                      setCollapsed((s) => ({ ...s, folders: !s.folders }))
+                    }
                   >
-                    <Plus className="h-4 w-4" /> Crea modello
-                  </button>
+                    <div className="-mx-1">
+                      <button
+                        onClick={() => setShowCreateFolderModal(true)}
+                        className="mb-2 inline-flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                      >
+                        <Plus className="h-4 w-4" /> Crea cartella
+                      </button>
 
-                  {(Array.isArray(templates) ? templates : []).map(
-                    (template) => (
-                      <TemplateRow
-                        key={template.id}
-                        template={template}
-                        onUseTemplate={handleUseTemplate}
-                        onEditTemplate={handleEditTemplate}
-                        onRenameTemplate={handleRenameTemplate}
-                        onDeleteTemplate={handleDeleteTemplate}
-                      />
-                    ),
-                  )}
-
-                  {(!templates || templates.length === 0) && (
-                    <div className="select-none rounded-lg border border-dashed border-zinc-200 px-3 py-3 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
-                      Nessun modello. Crea il tuo primo modello di prompt.
+                      {folders.map((f) => (
+                        <FolderRow
+                          key={f.id}
+                          name={f.name}
+                          count={folderCounts[f.name] || 0}
+                          conversations={getConversationsByFolder(f.name)}
+                          selectedId={selectedId}
+                          onSelect={onSelect}
+                          togglePin={togglePin}
+                          onDeleteFolder={handleDeleteFolder}
+                          onRenameFolder={handleRenameFolder}
+                        />
+                      ))}
                     </div>
-                  )}
-                </div>
-              </SidebarSection> */}
+                  </SidebarSection> */}
+
+              {/* TEMPORARILY HIDDEN - Templates section (uncomment to re-enable) */}
+              {/* <SidebarSection
+                    icon={<FileText className="h-4 w-4" />}
+                    title="MODELLI"
+                    collapsed={collapsed.templates}
+                    onToggle={() =>
+                      setCollapsed((s) => ({ ...s, templates: !s.templates }))
+                    }
+                  >
+                    <div className="-mx-1">
+                      <button
+                        onClick={() => setShowCreateTemplateModal(true)}
+                        className="mb-2 inline-flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                      >
+                        <Plus className="h-4 w-4" /> Crea modello
+                      </button>
+
+                      {(Array.isArray(templates) ? templates : []).map(
+                        (template) => (
+                          <TemplateRow
+                            key={template.id}
+                            template={template}
+                            onUseTemplate={handleUseTemplate}
+                            onEditTemplate={handleEditTemplate}
+                            onRenameTemplate={handleRenameTemplate}
+                            onDeleteTemplate={handleDeleteTemplate}
+                          />
+                        ),
+                      )}
+
+                      {(!templates || templates.length === 0) && (
+                        <div className="select-none rounded-lg border border-dashed border-zinc-200 px-3 py-3 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+                          Nessun modello. Crea il tuo primo modello di prompt.
+                        </div>
+                      )}
+                    </div>
+                  </SidebarSection> */}
+            </div>
+          </ScrollArea>
         </nav>
 
         <div className="mt-auto border-t border-zinc-200/60 px-3 py-3 dark:border-zinc-800">
           <div className="flex items-center gap-2">
-            <SettingsPopover onClearAll={onClearAll}>
+            <SettingsDropdown onClearAll={onClearAll}>
               <button className="inline-flex items-center gap-2 rounded-lg px-2 py-2 text-sm hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:hover:bg-zinc-800">
                 <Settings className="h-4 w-4" /> Impostazioni
               </button>
-            </SettingsPopover>
+            </SettingsDropdown>
             <div className="ml-auto">
               <ThemeToggle theme={theme} setTheme={setTheme} />
             </div>
