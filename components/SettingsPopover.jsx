@@ -2,31 +2,27 @@
 import { useState } from "react";
 import { LogOut, Trash2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { logout, getSession } from "@/lib/auth";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "./ui/alert-dialog";
+import { signOut, useSession } from "next-auth/react";
 
 export default function SettingsPopover({ children, onClearAll }) {
   const [open, setOpen] = useState(false);
-  const session = getSession();
-  const fullName = session && session.name && session.lastname
-    ? `${session.name} ${session.lastname}`
-    : "Utente";
+  const { data: session } = useSession();
+  const fullName = session?.user?.name || "Utente";
 
-  function handleClearAll() {
-    if (
-      confirm(
-        "Sei sicuro di voler eliminare tutte le conversazioni? Questa azione non può essere annullata.",
-      )
-    ) {
-      onClearAll?.();
-      setOpen(false);
-    }
-  }
-
-  function handleLogout() {
+  async function handleLogout() {
     if (confirm("Sei sicuro di voler uscire?")) {
-      logout();
-      // Reload the page to trigger authentication check
-      window.location.reload();
+      await signOut({ redirect: true, callbackUrl: "/" });
     }
   }
 
@@ -40,7 +36,7 @@ export default function SettingsPopover({ children, onClearAll }) {
               {fullName}
             </div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400">
-              {session?.email || ""}
+              {session?.user?.email || ""}
             </div>
           </div>
 
@@ -55,13 +51,34 @@ export default function SettingsPopover({ children, onClearAll }) {
 
             <div className="border-t border-zinc-200 dark:border-zinc-800 my-2"></div>
 
-            <button
-              onClick={handleClearAll}
-              className="flex items-center gap-3 w-full p-2 text-sm text-left hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg text-red-600 dark:text-red-400"
-            >
-              <Trash2 className="h-4 w-4" />
-              <span>Elimina tutte le chat</span>
-            </button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button className="flex items-center gap-3 w-full p-2 text-sm text-left hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg text-red-600 dark:text-red-400">
+                  <Trash2 className="h-4 w-4" />
+                  <span>Elimina tutte le chat</span>
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Sei sicuro?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Questa azione eliminerà tutte le conversazioni e non può essere annullata.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annulla</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => {
+                      onClearAll?.();
+                      setOpen(false);
+                    }}
+                    className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                  >
+                    Elimina tutto
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       </PopoverContent>

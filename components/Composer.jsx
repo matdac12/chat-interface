@@ -7,7 +7,7 @@ import {
   useImperativeHandle,
   useEffect,
 } from "react";
-import { Send, Loader2, Plus, Mic, X, Image, FileText } from "lucide-react";
+import { ArrowUpIcon, Loader2, Plus, Mic, X, Image, FileText } from "lucide-react";
 import ComposerActionsPopover from "./ComposerActionsPopover";
 import VoiceWaveform from "./VoiceWaveform";
 import { cls } from "./utils";
@@ -489,7 +489,7 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
               {sending || busy ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <Send className="h-4 w-4" />
+                <ArrowUpIcon className="h-4 w-4" />
               )}
             </button>
           </div>
