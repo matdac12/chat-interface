@@ -1,15 +1,19 @@
 "use client";
 
 import { cls } from "./utils";
-import { getSession } from "@/lib/auth";
+import { useSession } from "next-auth/react";
 
 export default function Message({ role, children }) {
   const isUser = role === "user";
-  const session = getSession();
-  const userInitials =
-    session && session.name && session.lastname
-      ? `${session.name.charAt(0)}${session.lastname.charAt(0)}`
-      : "U";
+  const { data: session } = useSession();
+  const userInitials = session?.user?.name
+    ? session.user.name
+        .split(" ")
+        .map((n) => n.charAt(0))
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "U";
 
   return (
     <div className={cls("flex gap-3", isUser ? "justify-end" : "justify-start")}>

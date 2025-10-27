@@ -25,7 +25,7 @@ import ProfileCard from "./ProfileCard";
 import { ScrollArea } from "./ui/scroll-area";
 import { cls } from "./utils";
 import { useState, useEffect } from "react";
-import { getSession } from "@/lib/auth";
+import { useSession } from "next-auth/react";
 
 export default function Sidebar({
   open,
@@ -63,15 +63,16 @@ export default function Sidebar({
   const [mounted, setMounted] = useState(false);
 
   // Get user session for profile display
-  const session = getSession();
-  const userFullName =
-    session && session.name && session.lastname
-      ? `${session.name} ${session.lastname}`
-      : "User";
-  const userInitials =
-    session && session.name && session.lastname
-      ? `${session.name.charAt(0)}${session.lastname.charAt(0)}`
-      : "U";
+  const { data: session } = useSession();
+  const userFullName = session?.user?.name || "User";
+  const userInitials = session?.user?.name
+    ? session.user.name
+        .split(" ")
+        .map((n) => n.charAt(0))
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "U";
 
   useEffect(() => {
     setMounted(true);
@@ -417,7 +418,7 @@ export default function Sidebar({
             <div className="min-w-0 text-left">
               <div className="truncate text-sm font-medium">{userFullName}</div>
               <div className="truncate text-xs text-zinc-500 dark:text-zinc-400">
-                {session?.email}
+                {session?.user?.email}
               </div>
             </div>
           </button>

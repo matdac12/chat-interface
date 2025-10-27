@@ -1,17 +1,20 @@
 "use client";
 
 import { Clock, Asterisk, X } from "lucide-react";
-import { getSession } from "@/lib/auth";
+import { useSession } from "next-auth/react";
 
 export default function ProfileCard({ isOpen, onClose }) {
   if (!isOpen) return null;
 
-  const session = getSession();
-  const fullName = session && session.name && session.lastname
-    ? `${session.name} ${session.lastname}`
-    : "User";
-  const initials = session && session.name && session.lastname
-    ? `${session.name.charAt(0)}${session.lastname.charAt(0)}`
+  const { data: session } = useSession();
+  const fullName = session?.user?.name || "User";
+  const initials = session?.user?.name
+    ? session.user.name
+        .split(" ")
+        .map((n) => n.charAt(0))
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
     : "U";
 
   // Get current date and time
@@ -71,7 +74,7 @@ export default function ProfileCard({ isOpen, onClose }) {
                 <h1 className="text-white text-2xl font-semibold">
                   {fullName}
                 </h1>
-                <p className="text-zinc-400 text-base">{session?.email}</p>
+                <p className="text-zinc-400 text-base">{session?.user?.email}</p>
               </div>
             </div>
           </div>
