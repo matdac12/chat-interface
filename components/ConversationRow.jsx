@@ -1,5 +1,6 @@
 import React from "react";
 import { Star, Trash2 } from "lucide-react";
+import { Toggle } from "./ui/toggle";
 import { cls, timeAgo } from "./utils";
 
 export default function ConversationRow({
@@ -43,21 +44,18 @@ export default function ConversationRow({
           )}
         </button>
         <div className="flex items-center gap-1">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
+          <Toggle
+            pressed={data.pinned}
+            onPressedChange={(e) => {
               onTogglePin();
             }}
+            size="sm"
             title={data.pinned ? "Unpin" : "Pin"}
-            className="rounded-md p-1 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:bg-zinc-200/50 dark:text-zinc-300 dark:hover:bg-zinc-700/60"
+            className="h-auto rounded-md p-1 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:bg-amber-50 hover:text-amber-500 hover:*:[svg]:fill-amber-500 hover:*:[svg]:stroke-amber-500 dark:text-zinc-300 dark:hover:bg-amber-950/20 dark:hover:text-amber-400 dark:hover:*:[svg]:fill-amber-400 dark:hover:*:[svg]:stroke-amber-400 data-[state=on]:bg-transparent data-[state=on]:text-amber-500 data-[state=on]:*:[svg]:fill-amber-500 data-[state=on]:*:[svg]:stroke-amber-500 dark:data-[state=on]:text-amber-400 dark:data-[state=on]:*:[svg]:fill-amber-400 dark:data-[state=on]:*:[svg]:stroke-amber-400"
             aria-label={data.pinned ? "Unpin conversation" : "Pin conversation"}
           >
-            {data.pinned ? (
-              <Star className="h-4 w-4 fill-zinc-800 text-zinc-800 dark:fill-zinc-200 dark:text-zinc-200" />
-            ) : (
-              <Star className="h-4 w-4" />
-            )}
-          </button>
+            <Star className="h-4 w-4 transition-all" />
+          </Toggle>
           <button
             onClick={(e) => {
               e.stopPropagation();
