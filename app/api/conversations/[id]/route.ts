@@ -11,16 +11,17 @@ import {
 // GET /api/conversations/[id] - Get a specific conversation with messages
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const conversation = await getConversationById(params.id, session.user.id);
+    const conversation = await getConversationById(id, session.user.id);
 
     if (!conversation) {
       return NextResponse.json(
@@ -29,7 +30,7 @@ export async function GET(
       );
     }
 
-    const messages = await getMessagesByConversationId(params.id);
+    const messages = await getMessagesByConversationId(id);
 
     return NextResponse.json({
       conversation: {
@@ -55,9 +56,10 @@ export async function GET(
 // PUT /api/conversations/[id] - Update a conversation
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
@@ -74,7 +76,7 @@ export async function PUT(
       updates.openai_conversation_id = openaiConversationId;
 
     const conversation = await updateConversation(
-      params.id,
+      id,
       session.user.id,
       updates
     );
@@ -99,9 +101,10 @@ export async function PUT(
 // DELETE /api/conversations/[id] - Delete a conversation
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
@@ -109,7 +112,7 @@ export async function DELETE(
     }
 
     // Verify the conversation belongs to the user before deleting
-    const conversation = await getConversationById(params.id, session.user.id);
+    const conversation = await getConversationById(id, session.user.id);
 
     if (!conversation) {
       return NextResponse.json(
@@ -118,7 +121,7 @@ export async function DELETE(
       );
     }
 
-    await deleteConversation(params.id, session.user.id);
+    await deleteConversation(id, session.user.id);
 
     return NextResponse.json({ success: true });
   } catch (error) {

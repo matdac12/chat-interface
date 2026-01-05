@@ -98,6 +98,7 @@ export default function AIAssistantUI() {
 
   const [useStreaming, setUseStreaming] = useState(true);
   const [accumulatedStreamingContent, setAccumulatedStreamingContent] = useState("");
+  const [selectedTier, setSelectedTier] = useState("base"); // Model tier: base | medio | avanzato
   const composerRef = useRef(null);
 
   // Handle streaming content updates - EXACTLY like TAVOLO_AI (lines 62-70)
@@ -393,6 +394,7 @@ export default function AIAssistantUI() {
         content,
         conversation.openaiConversationId || conversation.openai_conversation_id,
         fileData,
+        selectedTier,
         {
           onContent: (newContent, isComplete) => {
             // On first chunk: create the assistant message
@@ -542,6 +544,7 @@ export default function AIAssistantUI() {
           conversationId: convId,
           openaiConversationId: conversation.openaiConversationId || conversation.openai_conversation_id,
           file: fileData,
+          tier: selectedTier,
         }),
       });
 
@@ -629,6 +632,7 @@ export default function AIAssistantUI() {
           selectedId={selectedId}
           onSelect={(id) => setSelectedId(id)}
           togglePin={togglePin}
+          onDeleteConversation={deleteConversation}
           query={query}
           setQuery={setQuery}
           searchRef={searchRef}
@@ -657,6 +661,8 @@ export default function AIAssistantUI() {
               selected && resendMessage(selected.id, messageId)
             }
             isThinking={isThinking && thinkingConvId === selected?.id}
+            selectedTier={selectedTier}
+            onTierChange={setSelectedTier}
           />
         </main>
       </div>

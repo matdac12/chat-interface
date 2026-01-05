@@ -272,13 +272,15 @@ export default function Sidebar({
         </div>
 
         <nav className="mt-4 flex min-h-0 flex-1 flex-col px-2">
-          <ScrollArea className="h-full">
-            <div className="flex flex-col gap-4 pb-4">
+          <ScrollArea className="h-full scrollbar-hide">
+            <div className="flex flex-col gap-4 pb-4 pr-1">
               <SidebarSection
                 icon={<Star className="h-4 w-4" />}
                 title="PREFERITI"
                 collapsed={collapsed.pinned}
-                onToggle={() => setCollapsed((s) => ({ ...s, pinned: !s.pinned }))}
+                onToggle={() =>
+                  setCollapsed((s) => ({ ...s, pinned: !s.pinned }))
+                }
               >
                 {pinned.length === 0 ? (
                   <div className="select-none rounded-lg border border-dashed border-zinc-200 px-3 py-3 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
@@ -302,7 +304,9 @@ export default function Sidebar({
                 icon={<Clock className="h-4 w-4" />}
                 title="RECENTI"
                 collapsed={collapsed.recent}
-                onToggle={() => setCollapsed((s) => ({ ...s, recent: !s.recent }))}
+                onToggle={() =>
+                  setCollapsed((s) => ({ ...s, recent: !s.recent }))
+                }
               >
                 {recent.length === 0 ? (
                   <div className="select-none rounded-lg border border-dashed border-zinc-200 px-3 py-3 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">

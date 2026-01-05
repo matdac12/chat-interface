@@ -6,9 +6,10 @@ import { updateMessage, sql } from "@/lib/db";
 // PUT /api/messages/[id] - Update a message
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
@@ -30,7 +31,7 @@ export async function PUT(
       SELECT m.*, c.user_id
       FROM messages m
       JOIN conversations c ON m.conversation_id = c.id
-      WHERE m.id = ${params.id} AND c.user_id = ${session.user.id}
+      WHERE m.id = ${id} AND c.user_id = ${session.user.id}
       LIMIT 1
     `;
 
@@ -41,7 +42,7 @@ export async function PUT(
       );
     }
 
-    const message = await updateMessage(params.id, content);
+    const message = await updateMessage(id, content);
 
     if (!message) {
       return NextResponse.json(
