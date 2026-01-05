@@ -51,6 +51,11 @@ export default function AIAssistantUI() {
     } catch {}
   }, []);
 
+  // Warm up Neon DB on page load to minimize cold start delays
+  useEffect(() => {
+    fetch("/api/warmup").catch(() => {});
+  }, []);
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() => {
     try {
