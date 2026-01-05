@@ -189,6 +189,7 @@ export class StreamingFallbackHandler {
     private openaiClient: OpenAI,
     private promptId: string,
     private userName?: string,
+    private userInfo?: string,
     private model: string = "gpt-5-nano",
     private reasoningEffort: "low" | "medium" | "high" = "medium"
   ) {}
@@ -270,12 +271,17 @@ export class StreamingFallbackHandler {
         id: this.promptId,
       };
 
-      // Add user_name variable if provided
-      if (this.userName) {
-        promptConfig.variables = {
-          user_name: this.userName
-        };
-        console.log("User name for fallback prompt:", this.userName);
+      // Add user_name and user_info variables if provided
+      if (this.userName || this.userInfo) {
+        promptConfig.variables = {};
+        if (this.userName) {
+          promptConfig.variables.user_name = this.userName;
+          console.log("User name for fallback prompt:", this.userName);
+        }
+        if (this.userInfo) {
+          promptConfig.variables.user_info = this.userInfo;
+          console.log("User info for fallback prompt:", this.userInfo);
+        }
       }
 
       const response = await this.openaiClient.responses.create({
@@ -341,6 +347,7 @@ export class StreamingManager {
     private openaiClient: OpenAI,
     private promptId: string,
     private userName?: string,
+    private userInfo?: string,
     private model: string = "gpt-5-nano",
     private reasoningEffort: "low" | "medium" | "high" = "medium"
   ) {}
@@ -422,12 +429,17 @@ export class StreamingManager {
         id: this.promptId,
       };
 
-      // Add user_name variable if provided
-      if (this.userName) {
-        promptConfig.variables = {
-          user_name: this.userName
-        };
-        console.log("User name for streaming prompt:", this.userName);
+      // Add user_name and user_info variables if provided
+      if (this.userName || this.userInfo) {
+        promptConfig.variables = {};
+        if (this.userName) {
+          promptConfig.variables.user_name = this.userName;
+          console.log("User name for streaming prompt:", this.userName);
+        }
+        if (this.userInfo) {
+          promptConfig.variables.user_info = this.userInfo;
+          console.log("User info for streaming prompt:", this.userInfo);
+        }
       }
 
       console.log(`🔧 Using model: ${this.model}, reasoning: ${this.reasoningEffort}`);
@@ -482,7 +494,7 @@ export class StreamingManager {
       console.error("❌ Streaming error:", error);
 
       // Use fallback handler for streaming failures
-      const fallbackHandler = new StreamingFallbackHandler(this.openaiClient, this.promptId, this.userName, this.model, this.reasoningEffort);
+      const fallbackHandler = new StreamingFallbackHandler(this.openaiClient, this.promptId, this.userName, this.userInfo, this.model, this.reasoningEffort);
 
       yield* fallbackHandler.handleStreamingFailure(
         conversationId,

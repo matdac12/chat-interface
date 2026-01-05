@@ -157,9 +157,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Step 3: Build user name variable for prompt
+    // Step 3: Build user name and user info variables for prompt
     const userName = `${session.user.name}${session.user.lastName ? ` ${session.user.lastName}` : ''} (${session.user.email})`;
     console.log("User name for prompt:", userName);
+
+    const userInfo = session.user.roleDescription || "Utente Zafferano.";
+    console.log("User info for prompt:", userInfo);
 
     // Step 4: Create response with stored prompt and variables
     console.log(
@@ -172,7 +175,8 @@ export async function POST(req: NextRequest) {
       prompt: {
         id: process.env.OPENAI_PROMPT_ID!,
         variables: {
-          user_name: userName
+          user_name: userName,
+          user_info: userInfo
         }
       },
       input: responseInput,

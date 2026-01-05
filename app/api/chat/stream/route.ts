@@ -99,11 +99,16 @@ export async function POST(req: NextRequest) {
     const userName = `${session.user.name}${session.user.lastName ? ` ${session.user.lastName}` : ''} (${session.user.email})`;
     console.log("User name for streaming prompt:", userName);
 
+    // Get user info (role description) for prompt
+    const userInfo = session.user.roleDescription || "Utente Zafferano.";
+    console.log("User info for streaming prompt:", userInfo);
+
     // Create streaming manager with user context and model config
     const streamingManager = new StreamingManager(
       openai,
       process.env.OPENAI_PROMPT_ID,
       userName,
+      userInfo,
       modelConfig.model,
       modelConfig.reasoning
     );

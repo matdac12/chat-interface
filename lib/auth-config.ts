@@ -39,24 +39,27 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           lastName: user.last_name,
+          roleDescription: user.role_description,
         };
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
-      // Add user ID to token on sign in
+      // Add user data to token on sign in
       if (user) {
         token.id = user.id;
         token.lastName = user.lastName;
+        token.roleDescription = user.roleDescription;
       }
       return token;
     },
     async session({ session, token }) {
-      // Add user ID and lastName to session
+      // Add user data to session
       if (session.user) {
         session.user.id = token.id as string;
         session.user.lastName = token.lastName as string;
+        session.user.roleDescription = token.roleDescription as string;
       }
       return session;
     },
