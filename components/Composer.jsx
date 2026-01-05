@@ -8,7 +8,6 @@ import {
   useEffect,
 } from "react";
 import { ArrowUpIcon, Loader2, Plus, Mic, X, Image, FileText } from "lucide-react";
-import ComposerActionsPopover from "./ComposerActionsPopover";
 import VoiceWaveform from "./VoiceWaveform";
 import { cls } from "./utils";
 
@@ -120,23 +119,16 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
 
   // Handle file selection
   async function handleFileSelect(file) {
-    console.log("handleFileSelect called with:", file?.name);
-    if (!file || !validateFile(file)) {
-      console.log("File validation failed or no file");
-      return;
-    }
+    if (!file || !validateFile(file)) return;
 
     try {
-      console.log("Reading file as base64...");
       const base64Data = await readFileAsBase64(file);
-      console.log("Base64 data length:", base64Data?.length);
       setAttachedFile({
         name: file.name,
         type: file.type,
         size: file.size,
         data: base64Data,
       });
-      console.log("setAttachedFile called successfully");
     } catch (error) {
       console.error("Error reading file:", error);
       alert("Errore durante la lettura del file");
@@ -145,13 +137,9 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
 
   // Handle file input change
   function handleFileInputChange(e) {
-    console.log("handleFileInputChange called", e.target.files);
     const file = e.target.files?.[0];
     if (file) {
-      console.log("File selected:", file.name, file.type, file.size);
       handleFileSelect(file);
-    } else {
-      console.log("No file selected");
     }
     // Reset input so same file can be selected again
     if (fileInputRef.current) {
@@ -351,14 +339,6 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
 
   return (
     <div className="shrink-0 border-t border-zinc-200/60 p-4 pb-3 dark:border-zinc-800">
-      {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*,.pdf"
-        onChange={handleFileInputChange}
-        className="hidden"
-      />
 
       <div
         className={cls(
@@ -450,16 +430,20 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
         </div>
 
         <div className="flex items-center justify-between mt-2">
-          <ComposerActionsPopover
-            onFileClick={() => fileInputRef.current?.click()}
+          {/* File upload label - input overlays the button so clicks go directly to the input */}
+          <label
+            className="inline-flex shrink-0 items-center justify-center rounded-full p-2 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors cursor-pointer relative"
+            title="Add attachment"
           >
-            <button
-              className="inline-flex shrink-0 items-center justify-center rounded-full p-2 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
-              title="Add attachment"
-            >
-              <Plus className="h-4 w-4" />
-            </button>
-          </ComposerActionsPopover>
+            <Plus className="h-4 w-4" />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,.pdf"
+              onChange={handleFileInputChange}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+          </label>
 
           <div className="flex items-center gap-2 shrink-0">
             {isRecording && <VoiceWaveform isActive={isRecording} />}
