@@ -11,6 +11,7 @@ import {
   StreamingManager,
   StreamingResponseBuilder,
 } from "@/lib/streaming";
+import { getModelConfig, ModelTier } from "@/lib/model-config";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -27,8 +28,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { message, conversationId, openaiConversationId, file } =
+    const { message, conversationId, openaiConversationId, file, tier = "base" } =
       await req.json();
+
+    // Get model configuration for the selected tier
+    const modelConfig = getModelConfig(tier as ModelTier);
+    console.log(`📊 Selected tier: ${tier} -> Model: ${modelConfig.model}, Reasoning: ${modelConfig.reasoning}`);
 
     if (!message || typeof message !== "string") {
       return new Response(
@@ -94,11 +99,13 @@ export async function POST(req: NextRequest) {
     const userName = `${session.user.name}${session.user.lastName ? ` ${session.user.lastName}` : ''} (${session.user.email})`;
     console.log("User name for streaming prompt:", userName);
 
-    // Create streaming manager with user context
+    // Create streaming manager with user context and model config
     const streamingManager = new StreamingManager(
       openai,
       process.env.OPENAI_PROMPT_ID,
-      userName
+      userName,
+      modelConfig.model,
+      modelConfig.reasoning
     );
 
     // Build and return streaming response

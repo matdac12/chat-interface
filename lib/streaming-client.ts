@@ -97,6 +97,7 @@ class StreamingClient {
     message: string,
     openaiConversationId?: string,
     file?: any,
+    tier?: string,
     options: StreamingOptions = {}
   ): Promise<{ streamId: string }> {
     try {
@@ -128,6 +129,7 @@ class StreamingClient {
           message: message,
           openaiConversationId: openaiConversationId,
           file: file,
+          tier: tier || "base",
         }),
         signal: this.abortController.signal,
       });
@@ -453,6 +455,7 @@ export function useStreaming() {
     message: string,
     openaiConversationId?: string,
     file?: any,
+    tier?: string,
     options?: StreamingOptions
   ) => {
     // Reset content state before starting new stream
@@ -465,6 +468,7 @@ export function useStreaming() {
         message,
         openaiConversationId,
         file,
+        tier,
         options
       );
       return result;

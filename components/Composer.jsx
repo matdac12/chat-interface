@@ -10,8 +10,9 @@ import {
 import { ArrowUpIcon, Loader2, Plus, Mic, X, Image, FileText } from "lucide-react";
 import VoiceWaveform from "./VoiceWaveform";
 import { cls } from "./utils";
+import { ModelSelector } from "./ModelSelector";
 
-const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
+const Composer = forwardRef(function Composer({ onSend, busy, selectedTier = "base", onTierChange }, ref) {
   const [value, setValue] = useState("");
   const [sending, setSending] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -468,20 +469,29 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
         </div>
 
         <div className="flex items-center justify-between mt-2">
-          {/* File upload label - input overlays the button so clicks go directly to the input */}
-          <label
-            className="inline-flex shrink-0 items-center justify-center rounded-full p-2 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors cursor-pointer relative"
-            title="Add attachment"
-          >
-            <Plus className="h-4 w-4" />
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*,.pdf"
-              onChange={handleFileInputChange}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          {/* Left side: file upload and model selector */}
+          <div className="flex items-center gap-2">
+            {/* File upload label - input overlays the button so clicks go directly to the input */}
+            <label
+              className="inline-flex shrink-0 items-center justify-center rounded-full p-2 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors cursor-pointer relative"
+              title="Add attachment"
+            >
+              <Plus className="h-4 w-4" />
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,.pdf"
+                onChange={handleFileInputChange}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+            </label>
+
+            {/* Model tier selector */}
+            <ModelSelector
+              value={selectedTier}
+              onChange={onTierChange}
             />
-          </label>
+          </div>
 
           <div className="flex items-center gap-2 shrink-0">
             {isRecording && <VoiceWaveform isActive={isRecording} />}

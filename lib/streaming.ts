@@ -188,7 +188,9 @@ export class StreamingFallbackHandler {
   constructor(
     private openaiClient: OpenAI,
     private promptId: string,
-    private userName?: string
+    private userName?: string,
+    private model: string = "gpt-5-nano",
+    private reasoningEffort: "low" | "medium" | "high" = "medium"
   ) {}
 
   async *handleStreamingFailure(
@@ -277,10 +279,13 @@ export class StreamingFallbackHandler {
       }
 
       const response = await this.openaiClient.responses.create({
-        model: "gpt-5-nano",
+        model: this.model,
         prompt: promptConfig,
         input: responseInput,
         conversation: openaiConvId,
+        reasoning: {
+          effort: this.reasoningEffort,
+        },
       });
 
       const assistantText = response.output_text || "No response generated";
@@ -335,7 +340,9 @@ export class StreamingManager {
   constructor(
     private openaiClient: OpenAI,
     private promptId: string,
-    private userName?: string
+    private userName?: string,
+    private model: string = "gpt-5-nano",
+    private reasoningEffort: "low" | "medium" | "high" = "medium"
   ) {}
 
   async *streamResponse(
@@ -423,12 +430,16 @@ export class StreamingManager {
         console.log("User name for streaming prompt:", this.userName);
       }
 
+      console.log(`🔧 Using model: ${this.model}, reasoning: ${this.reasoningEffort}`);
       const responseStream = await this.openaiClient.responses.create({
-        model: "gpt-5-nano",
+        model: this.model,
         prompt: promptConfig,
         input: responseInput,
         conversation: openaiConvId,
         stream: true, // Enable streaming
+        reasoning: {
+          effort: this.reasoningEffort,
+        },
       });
 
       // Process streaming events with enhanced parsing
@@ -471,7 +482,7 @@ export class StreamingManager {
       console.error("❌ Streaming error:", error);
 
       // Use fallback handler for streaming failures
-      const fallbackHandler = new StreamingFallbackHandler(this.openaiClient, this.promptId, this.userName);
+      const fallbackHandler = new StreamingFallbackHandler(this.openaiClient, this.promptId, this.userName, this.model, this.reasoningEffort);
 
       yield* fallbackHandler.handleStreamingFailure(
         conversationId,

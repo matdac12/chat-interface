@@ -7,6 +7,7 @@ import {
   createMessage,
   updateConversation,
 } from "@/lib/db";
+import { getModelConfig, ModelTier } from "@/lib/model-config";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -20,8 +21,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { message, conversationId, openaiConversationId, file } =
+    const { message, conversationId, openaiConversationId, file, tier = "base" } =
       await req.json();
+
+    // Get model configuration for the selected tier
+    const modelConfig = getModelConfig(tier as ModelTier);
+    console.log(`📊 Selected tier: ${tier} -> Model: ${modelConfig.model}, Reasoning: ${modelConfig.reasoning}`);
 
     if (!message || typeof message !== "string") {
       return NextResponse.json(
@@ -161,8 +166,9 @@ export async function POST(req: NextRequest) {
       "Creating response with prompt_id:",
       process.env.OPENAI_PROMPT_ID,
     );
+    console.log(`🔧 Using model: ${modelConfig.model}, reasoning: ${modelConfig.reasoning}`);
     const response = await openai.responses.create({
-      model: "gpt-5-nano",
+      model: modelConfig.model,
       prompt: {
         id: process.env.OPENAI_PROMPT_ID!,
         variables: {
@@ -171,6 +177,9 @@ export async function POST(req: NextRequest) {
       },
       input: responseInput,
       conversation: convId,
+      reasoning: {
+        effort: modelConfig.reasoning,
+      },
     });
 
     console.log("Response completed successfully");

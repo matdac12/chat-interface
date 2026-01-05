@@ -59,6 +59,8 @@ const ChatPane = forwardRef(function ChatPane(
     onEditMessage,
     onResendMessage,
     isThinking,
+    selectedTier,
+    onTierChange,
   },
   ref,
 ) {
@@ -225,6 +227,8 @@ const ChatPane = forwardRef(function ChatPane(
           setBusy(false);
         }}
         busy={busy}
+        selectedTier={selectedTier}
+        onTierChange={onTierChange}
       />
     </div>
   );
