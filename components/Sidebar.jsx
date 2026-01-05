@@ -21,7 +21,6 @@ import CreateFolderModal from "./CreateFolderModal";
 import CreateTemplateModal from "./CreateTemplateModal";
 import SearchModal from "./SearchModal";
 import SettingsDropdown from "./SettingsDropdown";
-import ProfileCard from "./ProfileCard";
 import { ScrollArea } from "./ui/scroll-area";
 import { cls } from "./utils";
 import { useState, useEffect } from "react";
@@ -59,7 +58,6 @@ export default function Sidebar({
   const [showCreateTemplateModal, setShowCreateTemplateModal] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [showSearchModal, setShowSearchModal] = useState(false);
-  const [showProfileCard, setShowProfileCard] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   // Get user session for profile display
@@ -412,10 +410,7 @@ export default function Sidebar({
               <ThemeToggle theme={theme} setTheme={setTheme} />
             </div>
           </div>
-          <button
-            onClick={() => setShowProfileCard(true)}
-            className="mt-2 flex w-full items-center gap-2 rounded-xl bg-zinc-50 p-2 transition-colors hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-zinc-800/60 dark:hover:bg-zinc-800"
-          >
+          <div className="mt-2 flex w-full items-center gap-2 rounded-xl bg-zinc-50 p-2 dark:bg-zinc-800/60">
             <div className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 text-xs font-bold text-white shadow-sm">
               {userInitials}
             </div>
@@ -425,7 +420,7 @@ export default function Sidebar({
                 {session?.user?.email}
               </div>
             </div>
-          </button>
+          </div>
         </div>
       </motion.aside>
 
@@ -455,10 +450,6 @@ export default function Sidebar({
         createNewChat={createNewChat}
       />
 
-      <ProfileCard
-        isOpen={showProfileCard}
-        onClose={() => setShowProfileCard(false)}
-      />
     </>
   );
 }
