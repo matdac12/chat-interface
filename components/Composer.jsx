@@ -181,6 +181,43 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
     }
   }
 
+  // Handle paste event for images and files
+  function handlePaste(e) {
+    const clipboardData = e.clipboardData;
+    if (!clipboardData) return;
+
+    // Check for files in clipboard
+    const items = clipboardData.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+
+      // Check if item is a file (image or PDF)
+      if (item.kind === "file") {
+        const file = item.getAsFile();
+        if (file) {
+          // Validate file type before processing
+          const allowedTypes = [
+            "image/png",
+            "image/jpeg",
+            "image/jpg",
+            "image/gif",
+            "image/webp",
+            "application/pdf",
+          ];
+
+          if (allowedTypes.includes(file.type)) {
+            e.preventDefault(); // Prevent default paste behavior for files
+            handleFileSelect(file);
+            return; // Only handle one file at a time
+          }
+        }
+      }
+    }
+    // If no file found, let the default paste behavior handle text
+  }
+
   // Format file size
   function formatFileSize(bytes) {
     if (bytes < 1024) return bytes + " B";
@@ -410,6 +447,7 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
             onChange={(e) => setValue(e.target.value)}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
+            onPaste={handlePaste}
             placeholder="Come posso aiutarti?"
             rows={1}
             className={cls(
