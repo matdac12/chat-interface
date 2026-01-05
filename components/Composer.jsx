@@ -120,16 +120,23 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
 
   // Handle file selection
   async function handleFileSelect(file) {
-    if (!file || !validateFile(file)) return;
+    console.log("handleFileSelect called with:", file?.name);
+    if (!file || !validateFile(file)) {
+      console.log("File validation failed or no file");
+      return;
+    }
 
     try {
+      console.log("Reading file as base64...");
       const base64Data = await readFileAsBase64(file);
+      console.log("Base64 data length:", base64Data?.length);
       setAttachedFile({
         name: file.name,
         type: file.type,
         size: file.size,
         data: base64Data,
       });
+      console.log("setAttachedFile called successfully");
     } catch (error) {
       console.error("Error reading file:", error);
       alert("Errore durante la lettura del file");
@@ -138,9 +145,13 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
 
   // Handle file input change
   function handleFileInputChange(e) {
+    console.log("handleFileInputChange called", e.target.files);
     const file = e.target.files?.[0];
     if (file) {
+      console.log("File selected:", file.name, file.type, file.size);
       handleFileSelect(file);
+    } else {
+      console.log("No file selected");
     }
     // Reset input so same file can be selected again
     if (fileInputRef.current) {
@@ -339,7 +350,7 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
   const hasContent = value.length > 0;
 
   return (
-    <div className="border-t border-zinc-200/60 p-4 dark:border-zinc-800">
+    <div className="shrink-0 border-t border-zinc-200/60 p-4 pb-3 dark:border-zinc-800">
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
@@ -496,7 +507,7 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
         </div>
       </div>
 
-      <div className="mx-auto mt-2 max-w-3xl px-1 text-[11px] text-zinc-500 dark:text-zinc-400">
+      <div className="mx-auto mt-1.5 max-w-3xl px-1 pb-1 text-[11px] text-zinc-500 dark:text-zinc-400">
         Premi{" "}
         <kbd className="rounded border border-zinc-300 bg-zinc-50 px-1 dark:border-zinc-600 dark:bg-zinc-800">
           Invio
