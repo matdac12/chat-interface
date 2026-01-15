@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, Eye, EyeOff, Asterisk } from "lucide-react";
+import { Mail, Eye, EyeOff } from "lucide-react";
+import Image from "next/image";
 
 export function SignInCard({
   email,
@@ -22,9 +23,13 @@ export function SignInCard({
         {/* Header */}
         <div className="flex items-center justify-center mb-8">
           <div className="flex items-center gap-3">
-            <div className="grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-lg">
-              <Asterisk className="h-6 w-6" />
-            </div>
+            <Image
+              src="/LOGO-ZAFFERANO.png"
+              alt="Zafferano"
+              width={48}
+              height={48}
+              className="rounded-xl shadow-lg"
+            />
             <div className="text-2xl font-semibold tracking-tight text-white">
               Zafferano IT
             </div>

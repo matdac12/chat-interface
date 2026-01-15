@@ -25,6 +25,7 @@ import { ScrollArea } from "./ui/scroll-area";
 import { cls } from "./utils";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 
 export default function Sidebar({
   open,
@@ -220,9 +221,13 @@ export default function Sidebar({
       >
         <div className="flex items-center gap-2 border-b border-zinc-200/60 px-3 py-3 dark:border-zinc-800">
           <div className="flex items-center gap-2">
-            <div className="grid h-8 w-8 place-items-center rounded-xl bg-linear-to-br from-blue-500 to-indigo-500 text-white shadow-sm dark:from-zinc-200 dark:to-zinc-300 dark:text-zinc-900">
-              <Asterisk className="h-4 w-4" />
-            </div>
+            <Image
+              src="/LOGO-ZAFFERANO.png"
+              alt="Zafferano"
+              width={32}
+              height={32}
+              className="rounded-lg"
+            />
             <div className="text-sm font-semibold tracking-tight">
               Zafferano IT
             </div>

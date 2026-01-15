@@ -10,6 +10,11 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: 'Zafferano IT - AI Assistant',
   description: 'Internal AI Assistant for Zafferano IT',
+  icons: {
+    icon: '/LOGO-ZAFFERANO.png',
+    shortcut: '/LOGO-ZAFFERANO.png',
+    apple: '/LOGO-ZAFFERANO.png',
+  },
 }
 
 export default function RootLayout({

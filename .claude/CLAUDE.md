@@ -4,6 +4,21 @@
 
 A production-ready, slick chat interface built with Next.js 15, React 19, and modern UI patterns. This is a sophisticated ChatGPT-like application with advanced features including conversation management, templates, folders, and a collapsible sidebar.
 
+## Git Repositories
+
+This project has two configured remotes:
+
+| Remote | Repository | Purpose |
+|--------|------------|---------|
+| `origin` | https://github.com/matdac12/chat-interface.git | Personal/backup |
+| `company` | https://github.com/Be-Digital-Consulting/zafferano-assistenteIT.git | Company (primary) |
+
+**Push commands:**
+```bash
+git push company main   # Push to Be-Digital-Consulting (primary)
+git push origin main    # Push to personal repo (backup)
+```
+
 ## Current Status
 
 **Stage:** Transitioning from high-fidelity prototype to production application
@@ -387,6 +402,6 @@ When working on this project:
 
 ---
 
-**Last Updated:** 2025-10-24
+**Last Updated:** 2025-01-15
 **Status:** Pre-production (UI complete, backend needed)
 **Next Milestone:** Integrate real AI API and persistence layer
