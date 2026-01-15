@@ -19,100 +19,101 @@ export function SignInCard({
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-[32px] p-8 shadow-2xl transform transition-all duration-300 hover:scale-[1.02] hover:shadow-3xl">
+      <div className="bg-neutral-950 border border-neutral-800 rounded-2xl p-10 shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-center mb-8">
-          <div className="flex items-center gap-3">
-            <Image
-              src="/LOGO-ZAFFERANO.png"
-              alt="Zafferano"
-              width={48}
-              height={48}
-              className="rounded-xl shadow-lg"
-            />
-            <div className="text-2xl font-semibold tracking-tight text-white">
-              Zafferano IT
-            </div>
-          </div>
+        <div className="flex justify-center mb-6">
+          <Image
+            src="/LOGO-ZAFFERANO.png"
+            alt="Zafferano"
+            width={64}
+            height={64}
+          />
         </div>
 
-        <h1 className="text-3xl font-normal text-white mb-2 text-center transition-all duration-300">
-          Bentornato
+        <h1 className="text-xl font-light text-white text-center mb-8">
+          Assistente IT
         </h1>
-        <p className="text-white/60 text-center mb-8">
-          Accedi al tuo account
-        </p>
 
-        <form onSubmit={onSignIn} className="space-y-4">
+        <form onSubmit={onSignIn} className="space-y-5">
           {/* Email field */}
-          <div className="relative">
-            <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/40 transition-colors duration-200" />
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-black/20 backdrop-blur-sm border border-white/10 rounded-2xl h-14 text-white placeholder:text-white/40 focus:border-white/30 focus:ring-0 focus:outline-none pl-12 text-base transition-all duration-200 hover:bg-black/30 focus:bg-black/30"
-              placeholder="Inserisci la tua email"
-              required
-              disabled={isLoading}
-            />
+          <div>
+            <label className="block text-neutral-400 text-xs font-medium uppercase tracking-wider mb-2">
+              Email
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-600" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-neutral-900 border border-neutral-800 rounded-lg h-12 text-white placeholder:text-neutral-600 focus:border-neutral-600 focus:ring-0 focus:outline-none pl-11 text-sm transition-colors duration-200"
+                placeholder="nome@azienda.com"
+                required
+                disabled={isLoading}
+              />
+            </div>
           </div>
 
           {/* Password field */}
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-black/20 backdrop-blur-sm border border-white/10 rounded-2xl h-14 text-white placeholder:text-white/40 focus:border-white/30 focus:ring-0 focus:outline-none pr-12 pl-4 text-base transition-all duration-200 hover:bg-black/30 focus:bg-black/30"
-              placeholder="Inserisci la tua password"
-              required
-              disabled={isLoading}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/40 hover:text-white/60 transition-colors duration-200"
-              disabled={isLoading}
-            >
-              {showPassword ? (
-                <EyeOff className="w-5 h-5" />
-              ) : (
-                <Eye className="w-5 h-5" />
-              )}
-            </button>
+          <div>
+            <label className="block text-neutral-400 text-xs font-medium uppercase tracking-wider mb-2">
+              Password
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-neutral-900 border border-neutral-800 rounded-lg h-12 text-white placeholder:text-neutral-600 focus:border-neutral-600 focus:ring-0 focus:outline-none px-4 pr-11 text-sm transition-colors duration-200"
+                placeholder="Inserisci la password"
+                required
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-neutral-600 hover:text-neutral-400 transition-colors duration-200"
+                disabled={isLoading}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Error message */}
           {error && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-3 text-red-400 text-sm">
+            <div className="bg-red-950 border border-red-900 rounded-lg p-3 text-red-400 text-sm">
               {error}
             </div>
           )}
 
           {/* Remember me */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center">
             <label className="flex items-center space-x-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 rounded border border-white/20 bg-black/20 text-white focus:ring-white/20 focus:ring-2"
+                className="w-4 h-4 rounded border border-neutral-700 bg-neutral-900 text-white focus:ring-neutral-600 focus:ring-1"
                 disabled={isLoading}
               />
-              <span className="text-white/60 text-sm">Ricordami</span>
+              <span className="text-neutral-500 text-sm">Ricordami</span>
             </label>
           </div>
 
           {/* Sign in button */}
           <button
             type="submit"
-            className="w-full bg-white/20 backdrop-blur-sm border border-white/20 hover:bg-white/30 text-white font-medium rounded-2xl h-14 mt-8 text-base transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            className="w-full bg-white hover:bg-neutral-200 text-black font-medium rounded-lg h-12 mt-4 text-sm transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isLoading}
           >
             {isLoading ? (
               <div className="flex items-center justify-center gap-2">
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-neutral-400 border-t-black rounded-full animate-spin" />
                 Accesso in corso...
               </div>
             ) : (
@@ -120,10 +121,6 @@ export function SignInCard({
             )}
           </button>
         </form>
-
-        <p className="text-center text-white/40 text-sm mt-8">
-          Accedendo, accetti i nostri Termini di Servizio
-        </p>
       </div>
     </div>
   );
