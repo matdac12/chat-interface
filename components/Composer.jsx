@@ -12,7 +12,7 @@ import VoiceWaveform from "./VoiceWaveform";
 import { cls } from "./utils";
 import { ModelSelector } from "./ModelSelector";
 
-const Composer = forwardRef(function Composer({ onSend, busy, selectedTier = "base", onTierChange }, ref) {
+const Composer = forwardRef(function Composer({ onSend, busy, selectedTier = "base", onTierChange, centered = false }, ref) {
   const [value, setValue] = useState("");
   const [sending, setSending] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -376,7 +376,10 @@ const Composer = forwardRef(function Composer({ onSend, busy, selectedTier = "ba
   const hasContent = value.length > 0;
 
   return (
-    <div className="shrink-0 border-t border-zinc-200/60 p-4 pb-3 dark:border-zinc-800">
+    <div className={cls(
+      "p-4 pb-3",
+      centered ? "" : "shrink-0 border-t border-zinc-200/60 dark:border-zinc-800"
+    )}>
 
       <div
         className={cls(

@@ -4,6 +4,7 @@ import { useState, forwardRef, useImperativeHandle, useRef } from "react";
 import { Pencil, RefreshCw, Check, X, Image, FileText } from "lucide-react";
 import Message from "./Message";
 import Composer from "./Composer";
+import EmptyState from "./EmptyState";
 import { cls, timeAgo } from "./utils";
 
 function ThinkingMessage() {
@@ -106,6 +107,27 @@ const ChatPane = forwardRef(function ChatPane(
     cancelEdit();
   }
 
+  // Empty state for new conversations
+  if (messages.length === 0) {
+    return (
+      <EmptyState>
+        <Composer
+          ref={composerRef}
+          onSend={async (text, fileData) => {
+            if (!text.trim()) return;
+            setBusy(true);
+            await onSend?.(text, fileData);
+            setBusy(false);
+          }}
+          busy={busy}
+          selectedTier={selectedTier}
+          onTierChange={onTierChange}
+          centered
+        />
+      </EmptyState>
+    );
+  }
+
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
       <div className="flex-1 min-h-0 space-y-5 overflow-y-auto px-4 py-6 sm:px-8">
@@ -118,13 +140,7 @@ const ChatPane = forwardRef(function ChatPane(
           Aggiornata {timeAgo(conversation.updatedAt)} · {count} messaggi
         </div>
 
-        {messages.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-zinc-300 p-6 text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-            Nessun messaggio. Inizia a scrivere per cominciare.
-          </div>
-        ) : (
-          <>
-            {messages.map((m) => (
+        {messages.map((m) => (
               <div key={m.id} className="space-y-2">
                 {editingId === m.id ? (
                   <div
@@ -212,10 +228,8 @@ const ChatPane = forwardRef(function ChatPane(
                 )}
               </div>
             ))}
-            {/* Show thinking indicator when waiting for first chunk */}
-            {isThinking && <ThinkingMessage />}
-          </>
-        )}
+        {/* Show thinking indicator when waiting for first chunk */}
+        {isThinking && <ThinkingMessage />}
       </div>
 
       <Composer
