@@ -34,7 +34,7 @@ export const MODEL_TIERS = {
 export type ModelTier = keyof typeof MODEL_TIERS;
 export type ReasoningEffort = "low" | "medium" | "high";
 
-export const DEFAULT_TIER: ModelTier = "base";
+export const DEFAULT_TIER: ModelTier = "istantaneo";
 
 /**
  * Get model configuration for a given tier

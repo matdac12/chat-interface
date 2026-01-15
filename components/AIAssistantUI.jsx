@@ -9,6 +9,7 @@ import Header from "./Header";
 import ChatPane from "./ChatPane";
 import GhostIconButton from "./GhostIconButton";
 import ThemeToggle from "./ThemeToggle";
+import { DEFAULT_TIER } from "@/lib/model-config";
 
 export default function AIAssistantUI() {
   const { data: session } = useSession();
@@ -103,7 +104,7 @@ export default function AIAssistantUI() {
 
   const [useStreaming, setUseStreaming] = useState(true);
   const [accumulatedStreamingContent, setAccumulatedStreamingContent] = useState("");
-  const [selectedTier, setSelectedTier] = useState("base"); // Model tier: base | medio | avanzato
+  const [selectedTier, setSelectedTier] = useState(DEFAULT_TIER); // Model tier: istantaneo | base | medio | avanzato
   const composerRef = useRef(null);
 
   // Handle streaming content updates - EXACTLY like TAVOLO_AI (lines 62-70)
