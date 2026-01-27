@@ -48,40 +48,54 @@ export class OpenAIStreamingEventParser {
     this.chunkCount++;
     const currentTime = Date.now();
 
-    // Main content event (Responses API)
-    if (event.output_text !== undefined && event.output_text !== null) {
-      const newContent = event.output_text.substring(this.accumulatedContent.length);
-      this.accumulatedContent = event.output_text;
+    // Skip reasoning events - we only want the actual message content
+    // Reasoning events have type like "response.reasoning_summary_text.delta" or contain reasoning data
+    if (event.type && (
+      event.type.includes("reasoning") ||
+      event.type === "response.reasoning_summary_text.delta" ||
+      event.type === "response.reasoning_summary_text.done"
+    )) {
+      return null; // Skip reasoning content
+    }
 
-      if (newContent) {
+    // Only process output_text delta events (actual message content)
+    // event.type === "response.output_text.delta" for streaming message content
+    if (event.type === "response.output_text.delta" && event.delta) {
+      const deltaContent = event.delta;
+      if (deltaContent) {
+        this.accumulatedContent += deltaContent;
         const timeSinceLast = (currentTime - this.lastChunkTime) / 1000;
-        const charsPerSecond = timeSinceLast > 0 ? newContent.length / timeSinceLast : 0;
-
+        const charsPerSecond = timeSinceLast > 0 ? deltaContent.length / timeSinceLast : 0;
         this.lastChunkTime = currentTime;
         return {
           type: "content",
-          data: newContent,
+          data: deltaContent,
           timestamp: currentTime,
           chunk_id: this.chunkCount,
+          source: "responses_output_text_delta",
           total_chars: this.accumulatedContent.length,
           chars_per_second: Math.round(charsPerSecond * 100) / 100,
         };
       }
     }
 
-    // ResponseTextDeltaEvent from Responses API
+    // ResponseTextDeltaEvent from Responses API (fallback for other delta formats)
+    // Only if it's not a reasoning event
     if (event.delta !== undefined && event.delta !== null && typeof event.delta === "string") {
-      const deltaContent = event.delta;
-      if (deltaContent) {
-        this.accumulatedContent += deltaContent;
-        return {
-          type: "content",
-          data: deltaContent,
-          timestamp: currentTime,
-          chunk_id: this.chunkCount,
-          source: "responses_text_delta",
-          total_chars: this.accumulatedContent.length,
-        };
+      // Check this is not a reasoning-related event
+      if (!event.type || !event.type.includes("reasoning")) {
+        const deltaContent = event.delta;
+        if (deltaContent) {
+          this.accumulatedContent += deltaContent;
+          return {
+            type: "content",
+            data: deltaContent,
+            timestamp: currentTime,
+            chunk_id: this.chunkCount,
+            source: "responses_text_delta",
+            total_chars: this.accumulatedContent.length,
+          };
+        }
       }
     }
 
@@ -294,7 +308,22 @@ export class StreamingFallbackHandler {
         },
       });
 
-      const assistantText = response.output_text || "No response generated";
+      // Extract ONLY the message content (not reasoning trace)
+      let assistantText = "";
+      if (response.output && Array.isArray(response.output)) {
+        for (const item of response.output) {
+          if (item.type === "message" && item.content) {
+            for (const content of item.content) {
+              if (content.type === "output_text" && content.text) {
+                assistantText += content.text;
+              }
+            }
+          }
+        }
+      }
+      if (!assistantText) {
+        assistantText = response.output_text || "No response generated";
+      }
 
       // Store fallback response in database
       try {

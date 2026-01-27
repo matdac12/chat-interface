@@ -189,8 +189,25 @@ export async function POST(req: NextRequest) {
     console.log("Response completed successfully");
     console.log("Response ID:", response.id);
 
-    // Extract the text content from the response
-    const assistantText = response.output_text || "No response generated";
+    // Extract ONLY the message content (not reasoning trace)
+    // When reasoning is enabled, response.output contains both reasoning and message items
+    let assistantText = "";
+    if (response.output && Array.isArray(response.output)) {
+      for (const item of response.output) {
+        // Only include message content, skip reasoning content
+        if (item.type === "message" && item.content) {
+          for (const content of item.content) {
+            if (content.type === "output_text" && content.text) {
+              assistantText += content.text;
+            }
+          }
+        }
+      }
+    }
+    // Fallback to output_text only if no message content was found
+    if (!assistantText) {
+      assistantText = response.output_text || "No response generated";
+    }
 
     console.log("Assistant response:", assistantText.substring(0, 100) + "...");
     console.log("Response length:", assistantText.length, "characters");
