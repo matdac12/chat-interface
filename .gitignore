@@ -42,7 +42,22 @@ next-env.d.ts
 *.swp
 *.swo
 *~
+.codex/
+.opencode/
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Credentials
+.claude/credentials.txt
+
+# Claude Code local files
+.claude/settings.local.json
+.claude/skills/
+
+# MCP servers
+.playwright-mcp/
+
+# Windows artifacts
+nul
